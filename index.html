@@ -572,8 +572,6 @@
   .requester-mode [data-page="database"] .database-actions button,
   .requester-mode [data-page="database"] .database-actions label,
   .requester-mode [data-page="database"] .database-manage-note,
-  .requester-mode [data-page="approval-list"] .approval-table th:last-child,
-  .requester-mode [data-page="approval-list"] .approval-table td:last-child,
   .requester-mode [data-page="gallery"] .gallery-detail-actions,
   .requester-mode [data-tracking-edit],
   .requester-mode [data-tracking-delete],
@@ -581,6 +579,9 @@
   .requester-mode [data-work-action="undo"],
   .requester-mode [data-work-action="delete"]{ display:none!important; }
   .requester-mode [data-page="database"] .database-actions > span:last-child{ display:inline-flex; }
+  .requester-mode [data-page="approval-list"] #approvalRequestBody tr:not([data-state="pending"]) .approval-actions,
+  .requester-mode [data-page="approval-list"] .approval-icon-button.approval-view,
+  .requester-mode [data-page="approval-list"] .approval-icon-button.reject{ display:none!important; }
   .requester-mode .booking-inline:disabled,.requester-mode .work-edit-money:disabled,.requester-mode .influencer-process-date:disabled{ border-color:transparent; background:transparent; color:inherit; opacity:1; cursor:default; }
   [data-page="my-job"],[data-page="my-job-archive"]{ min-height:100vh; padding:42px 46px; background:#f4f7fa; color:#17243a; }
   .myjob-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
@@ -2522,16 +2523,14 @@
   const cancelApprovalRow=row=>{if(!row)return;row.dataset.state='cancelled';const badge=row.querySelector('.approval-state');if(badge){badge.className='approval-state';badge.textContent='● ยกเลิก / ตีกลับ';}row.hidden=false;};
   document.querySelector('.approval-decline').addEventListener('click', () => { cancelApprovalRow(activeApprovalRow); approvalDetailModal.hidden=true; });
   document.querySelectorAll('.approval-tab').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.approval-tab').forEach(item=>item.classList.remove('active')); button.classList.add('active'); document.querySelectorAll('#approvalRequestBody tr').forEach(row=>row.hidden=row.dataset.state!==button.dataset.approvalFilter); }));
-  document.querySelectorAll('.approval-icon-button.delete').forEach(button => button.addEventListener('click', () => { if(confirm('ลบรายการนี้ใช่หรือไม่?')) button.closest('tr').remove(); }));
   document.querySelectorAll('.approval-icon-button.reject').forEach(button => button.addEventListener('click', () => { if(confirm('ยกเลิกหรือตีกลับคำขอนี้ใช่หรือไม่?')) cancelApprovalRow(button.closest('tr')); }));
-  document.querySelectorAll('.approval-icon-button.edit').forEach(button => button.addEventListener('click', () => { const row=button.closest('tr'); const value=prompt('แก้ไขชื่อรายการ',row.dataset.title); if(value){row.dataset.title=value;row.querySelector('.approval-title').textContent=value;} }));
   approvalRequestBody?.addEventListener('click',event=>{
     const button=event.target.closest('.approval-icon-button');
     if(!button)return;
     const row=button.closest('tr[data-pr]');
     if(button.classList.contains('approval-view')){event.preventDefault();openApprovalDetail(row);return;}
-    if(button.classList.contains('delete')){event.preventDefault();if(confirm('ลบรายการนี้ใช่หรือไม่?'))row.remove();return;}
-    if(button.classList.contains('edit')){event.preventDefault();const value=prompt('แก้ไขชื่อรายการ',row.dataset.title);if(value){row.dataset.title=value;const title=row.querySelector('.approval-title');if(title)title.textContent=value;saveApprovalRequests();}}
+    if(button.classList.contains('delete')){event.preventDefault();if(requesterMode&&row.dataset.state!=='pending')return;if(confirm('ลบรายการนี้ใช่หรือไม่?'))row.remove();return;}
+    if(button.classList.contains('edit')){event.preventDefault();if(requesterMode&&row.dataset.state!=='pending')return;const value=prompt('แก้ไขชื่อรายการ',row.dataset.title);if(value){row.dataset.title=value;const title=row.querySelector('.approval-title');if(title)title.textContent=value;saveApprovalRequests();}}
   });
   document.getElementById('approvalRequestBody').addEventListener('click',event=>{const button=event.target.closest('.approval-icon-button.reject');if(!button)return;event.preventDefault();event.stopImmediatePropagation();if(confirm('ยกเลิกหรือตีกลับคำขอนี้ใช่หรือไม่?'))cancelApprovalRow(button.closest('tr'));},true);
   const approvalRequestModal = document.getElementById('approvalRequestModal');
