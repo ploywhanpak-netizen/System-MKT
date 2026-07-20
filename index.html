@@ -1366,7 +1366,7 @@
       localStorage.clear();
       localStorage.setItem(resetVersion,'done');
     }
-    document.querySelectorAll('.tracking-item,.idea-card,.gallery-card,#approvalRequestBody tr[data-pr]').forEach(item=>item.remove());
+    document.querySelectorAll('.tracking-item,.idea-card,.gallery-card').forEach(item=>item.remove());
     document.querySelectorAll('.idea-count').forEach(item=>item.textContent='0');
     const eventResetVersion='quackapprove-event-reset-2026-07-20-v1';
     if(!localStorage.getItem(eventResetVersion)){
@@ -2309,6 +2309,32 @@
   const approvalDetailModal = document.getElementById('approvalDetailModal');
   let activeApprovalRow = null;
   const approvalRequestBody = document.getElementById('approvalRequestBody');
+  const approvalRequestStorageKey = 'quackapprove-approval-requests-v1';
+  function approvalRowRecord(row){
+    return {dataset:{...row.dataset},html:row.innerHTML};
+  }
+  function saveApprovalRequests(){
+    if(!approvalRequestBody)return;
+    const records=Array.from(approvalRequestBody.rows).map(approvalRowRecord);
+    localStorage.setItem(approvalRequestStorageKey,JSON.stringify(records));
+  }
+  function restoreApprovalRequests(){
+    if(!approvalRequestBody)return;
+    try{
+      const saved=JSON.parse(localStorage.getItem(approvalRequestStorageKey)||'null');
+      if(!Array.isArray(saved))return;
+      approvalRequestBody.innerHTML='';
+      saved.forEach(record=>{
+        if(!record||typeof record.html!=='string')return;
+        const row=document.createElement('tr');
+        Object.entries(record.dataset||{}).forEach(([key,value])=>row.dataset[key]=value);
+        row.innerHTML=record.html;
+        row.hidden=false;
+        approvalRequestBody.appendChild(row);
+      });
+    }catch(error){console.warn('อ่านข้อมูลรายการขออนุมัติไม่สำเร็จ',error);}
+  }
+  restoreApprovalRequests();
   const approvalNavItem = document.querySelector('[data-nav="approval-list"]');
   const approvalPendingBadge = document.createElement('span');
   approvalPendingBadge.id = 'approvalPendingBadge';
@@ -2333,7 +2359,7 @@
     previousApprovalPendingTotal = total;
   }
   if (approvalRequestBody) {
-    new MutationObserver(() => updateApprovalPendingBadge(true)).observe(approvalRequestBody,{
+    new MutationObserver(() => { updateApprovalPendingBadge(true); saveApprovalRequests(); }).observe(approvalRequestBody,{
       childList:true,
       attributes:true,
       attributeFilter:['data-state']
@@ -2385,6 +2411,14 @@
   document.querySelectorAll('.approval-icon-button.delete').forEach(button => button.addEventListener('click', () => { if(confirm('ลบรายการนี้ใช่หรือไม่?')) button.closest('tr').remove(); }));
   document.querySelectorAll('.approval-icon-button.reject').forEach(button => button.addEventListener('click', () => { if(confirm('ยกเลิกหรือตีกลับคำขอนี้ใช่หรือไม่?')) cancelApprovalRow(button.closest('tr')); }));
   document.querySelectorAll('.approval-icon-button.edit').forEach(button => button.addEventListener('click', () => { const row=button.closest('tr'); const value=prompt('แก้ไขชื่อรายการ',row.dataset.title); if(value){row.dataset.title=value;row.querySelector('.approval-title').textContent=value;} }));
+  approvalRequestBody?.addEventListener('click',event=>{
+    const button=event.target.closest('.approval-icon-button');
+    if(!button)return;
+    const row=button.closest('tr[data-pr]');
+    if(button.classList.contains('approval-view')){event.preventDefault();openApprovalDetail(row);return;}
+    if(button.classList.contains('delete')){event.preventDefault();if(confirm('ลบรายการนี้ใช่หรือไม่?'))row.remove();return;}
+    if(button.classList.contains('edit')){event.preventDefault();const value=prompt('แก้ไขชื่อรายการ',row.dataset.title);if(value){row.dataset.title=value;const title=row.querySelector('.approval-title');if(title)title.textContent=value;saveApprovalRequests();}}
+  });
   document.getElementById('approvalRequestBody').addEventListener('click',event=>{const button=event.target.closest('.approval-icon-button.reject');if(!button)return;event.preventDefault();event.stopImmediatePropagation();if(confirm('ยกเลิกหรือตีกลับคำขอนี้ใช่หรือไม่?'))cancelApprovalRow(button.closest('tr'));},true);
   const approvalRequestModal = document.getElementById('approvalRequestModal');
   const approvalRequestForm = document.getElementById('approvalRequestForm');
