@@ -4,26 +4,25 @@ service cloud.firestore {
     // ===============================================================
     // Assumed Data Model
     // ===============================================================
-    // Collection: users/{userId}/workLogs/{date}
-    // Fields:
-    //   ownerUid: string, required, immutable, must match authenticated UID
-    //   date: string, required, immutable, YYYY-MM-DD format, max 10 chars
-    //   payload: string, required, JSON-encoded work-log data, max 50,000 chars
-    //   updatedAt: timestamp, required, supplied by the server
-    //
-    // Collection: users/{userId}/events/{eventId}
-    // Fields:
-    //   ownerUid: string, required, immutable, must match authenticated UID
-    //   id: string, required, immutable, must match eventId, max 120 chars
-    //   payload: string, required, JSON-encoded Event data, max 50,000 chars
-    //   updatedAt: timestamp, required, supplied by the server
-    //
-    // Collection: sharedEvents/{eventId}
-    // Public team Event data explicitly requested by the project owner.
-    // Fields:
-    //   id: string, required, immutable, must match eventId, max 120 chars
-    //   payload: string, required, JSON-encoded Event data only, max 50,000 chars
-    //   updatedAt: timestamp, required, supplied by the server
+    // users/{userId}/workLogs/{dateId}
+    //   ownerUid: string, immutable, authenticated owner UID
+    //   date: string, immutable, YYYY-MM-DD and equal to dateId
+    //   payload: string, JSON, 1..50,000 chars
+    //   updatedAt: timestamp, server request time
+    // users/{userId}/events/{eventId} (legacy owner-scoped events)
+    //   ownerUid: string, immutable, authenticated owner UID
+    //   id: string, immutable and equal to eventId
+    //   payload: string, JSON, 1..50,000 chars
+    //   updatedAt: timestamp, server request time
+    // sharedEvents/{eventId} (public team Event data)
+    //   id: string, immutable and equal to eventId
+    //   payload: string, JSON, 1..50,000 chars
+    //   updatedAt: timestamp, server request time
+    // sharedAppData/team (public team application state)
+    //   id: string, immutable, exactly "team"
+    //   payload: string, JSON, 2..500,000 chars
+    //   updatedAt: timestamp, server request time
+    // ===============================================================
 
     function isAuthenticated() {
       return request.auth != null;
@@ -92,27 +91,34 @@ service cloud.firestore {
         data.updatedAt == request.time;
     }
 
+    function isValidSharedAppData(data, stateId) {
+      return data.keys().hasAll(['id', 'payload', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'payload', 'updatedAt']) &&
+        stateId == 'team' &&
+        data.id is string &&
+        data.id == stateId &&
+        data.payload is string &&
+        data.payload.size() >= 2 &&
+        data.payload.size() <= 500000 &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
     match /users/{userId}/workLogs/{dateId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) &&
-        uidUnchanged(userId) &&
+      allow create: if isOwner(userId) && uidUnchanged(userId) &&
         isValidWorkLog(request.resource.data, userId, dateId);
-      allow update: if isOwner(userId) &&
-        uidUnchanged(userId) &&
-        uidNotModified() &&
-        request.resource.data.date == resource.data.date &&
+      allow update: if isOwner(userId) && uidUnchanged(userId) &&
+        uidNotModified() && request.resource.data.date == resource.data.date &&
         isValidWorkLog(request.resource.data, userId, dateId);
       allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
     }
 
     match /users/{userId}/events/{eventId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) &&
-        uidUnchanged(userId) &&
+      allow create: if isOwner(userId) && uidUnchanged(userId) &&
         isValidEvent(request.resource.data, userId, eventId);
-      allow update: if isOwner(userId) &&
-        uidUnchanged(userId) &&
-        uidNotModified() &&
+      allow update: if isOwner(userId) && uidUnchanged(userId) && uidNotModified() &&
         request.resource.data.id == resource.data.id &&
         isValidEvent(request.resource.data, userId, eventId);
       allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
@@ -123,6 +129,14 @@ service cloud.firestore {
       allow create: if isValidSharedEvent(request.resource.data, eventId);
       allow update: if request.resource.data.id == resource.data.id &&
         isValidSharedEvent(request.resource.data, eventId);
+      allow delete: if false;
+    }
+
+    match /sharedAppData/{stateId} {
+      allow read: if stateId == 'team';
+      allow create: if isValidSharedAppData(request.resource.data, stateId);
+      allow update: if request.resource.data.id == resource.data.id &&
+        isValidSharedAppData(request.resource.data, stateId);
       allow delete: if false;
     }
 
