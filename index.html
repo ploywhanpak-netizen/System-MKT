@@ -2983,6 +2983,15 @@
   const budgetEscape = value => String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const budgetMoney = value => `฿ ${Number(value || 0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   const budgetSum = values => values.reduce((sum,value) => sum + Number(value || 0),0);
+  const budgetFormulaValue = raw => {
+    let expression=String(raw??'').trim().replaceAll(',','').replace(/\s+/g,'');
+    if(expression.startsWith('='))expression=expression.slice(1);
+    if(expression.endsWith('='))expression=expression.slice(0,-1);
+    if(!expression||!/^[0-9.+\-*/()]+$/.test(expression))throw new Error('สูตรไม่ถูกต้อง');
+    const value=Function(`"use strict";return (${expression})`)();
+    if(!Number.isFinite(value)||value<0)throw new Error('ผลลัพธ์ต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป');
+    return Math.round(value*100)/100;
+  };
   const budgetPeriod=value=>{const text=String(value||'').trim(),english=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'],thai=['ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'];let match=text.match(/(20\d{2})[-/]([01]?\d)/);if(match)return{year:Number(match[1]),month:Number(match[2])-1};const lower=text.toLowerCase(),englishMonth=english.findIndex(name=>lower.includes(name)),thaiMonth=thai.findIndex(name=>text.includes(name));const yearMatch=text.match(/(20\d{2}|25\d{2})/),rawYear=Number(yearMatch?.[1]||new Date().getFullYear()),year=rawYear>2400?rawYear-543:rawYear;return{year,month:englishMonth>=0?englishMonth:thaiMonth>=0?thaiMonth:0};};
   const budgetBranchName=value=>{const text=String(value||'').toLowerCase();if(text.includes('bloom 65'))return'Bloom 65';if(text.includes('bloom 41'))return'Bloom 41';if(text.includes('pancake'))return'Pancake Cafe';return'Event Bloom';};
   const budgetDatabaseRowByPr=pr=>Array.from(approvedTable?.tBodies?.[0]?.rows||[]).find(row=>row.dataset.pr===pr);
@@ -3018,7 +3027,7 @@
     document.getElementById('budgetTableHead').innerHTML='<th>ช่องทาง</th><th>เป้า</th><th>รวม</th><th>ขาดอีก</th>'+budgetMonthNames.map((month,index)=>`<th>${budgetEditing?`<input class="budget-month-name-edit" data-budget-month-name="${index}" value="${budgetEscape(month)}" aria-label="แก้ไขชื่อคอลัมน์ ${budgetEscape(month)}">`:budgetEscape(month)}</th>`).join('');
     document.getElementById('marketingYear').textContent=budgetYear;
     const marketingYearSelect=document.getElementById('marketingYearSelect');if(marketingYearSelect){marketingYearSelect.innerHTML=Array.from({length:11},(_,index)=>budgetYear-5+index).map(year=>`<option value="${year}" ${year===budgetYear?'selected':''}>${year} / ${year+543}</option>`).join('');}
-    const rows=branches.map(name=>{ const values=budgetValuesForBranch(name),total=budgetSum(values),eventSource=name==='Event Bloom'; return `<tr><td><b>${name}</b>${eventSource?'<small style="display:block;margin-top:4px;color:#6d968d">ดึงยอดขายจากหน้า Event</small>':''}</td><td class="target">${budgetEditing?`<input class="budget-inline-edit" data-budget-target="${name}" type="number" min="0" value="${budgetTargets[name]}">`:budgetMoney(budgetTargets[name])}</td><td class="spent">${budgetMoney(total)}</td><td class="remaining">${budgetMoney(Math.max(0,budgetTargets[name]-total))}</td>${values.map((value,month)=>`<td>${budgetEditing&&!eventSource?`<input class="budget-inline-edit" style="width:112px" data-budget-month-branch="${name}" data-budget-month-index="${month}" type="number" min="0" step="0.01" value="${value}">`:(value?budgetMoney(value):'–')}</td>`).join('')}</tr>`; }).join('');
+    const rows=branches.map(name=>{ const values=budgetValuesForBranch(name),total=budgetSum(values),eventSource=name==='Event Bloom'; return `<tr><td><b>${name}</b>${eventSource?'<small style="display:block;margin-top:4px;color:#6d968d">ดึงยอดขายจากหน้า Event</small>':''}</td><td class="target">${budgetEditing?`<input class="budget-inline-edit" data-budget-target="${name}" type="text" inputmode="decimal" value="${budgetTargets[name]}" placeholder="เช่น =99000*12">`:budgetMoney(budgetTargets[name])}</td><td class="spent">${budgetMoney(total)}</td><td class="remaining">${budgetMoney(Math.max(0,budgetTargets[name]-total))}</td>${values.map((value,month)=>`<td>${budgetEditing&&!eventSource?`<input class="budget-inline-edit" style="width:112px" data-budget-month-branch="${name}" data-budget-month-index="${month}" type="number" min="0" step="0.01" value="${value}">`:(value?budgetMoney(value):'–')}</td>`).join('')}</tr>`; }).join('');
     const totalMonths=Array.from({length:budgetMonthNames.length},(_,i)=>budgetSum(branches.map(name=>budgetValuesForBranch(name)[i])));
     document.getElementById('budgetBranchBody').innerHTML=rows+`<tr><td><b>รวมทุกช่องทาง</b></td><td class="target">${budgetMoney(target)}</td><td class="spent">${budgetMoney(spent)}</td><td class="remaining">${budgetMoney(remaining)}</td>${totalMonths.map(value=>`<td><b>${value?budgetMoney(value):'–'}</b></td>`).join('')}</tr>`;
     renderMarketing(target);
@@ -3038,7 +3047,19 @@
   document.getElementById('budgetNextYear')?.addEventListener('click',()=>{budgetYear++;renderBudget();});
   document.getElementById('marketingYearSelect')?.addEventListener('change',event=>{budgetYear=Number(event.target.value)||new Date().getFullYear();renderBudget();});
   document.getElementById('budgetAddMonth')?.addEventListener('click',()=>{const suggested=`MONTH ${budgetMonthNames.length+1}`,name=prompt('ชื่อเดือนหรืองวดใหม่',suggested)?.trim();if(!name)return;if(budgetMonthNames.some(month=>month.toLowerCase()===name.toLowerCase())){alert('มีเดือนนี้อยู่แล้ว');return;}budgetMonthNames.push(name.toUpperCase());Object.keys(budgetMonthly).forEach(branch=>budgetMonthly[branch].push(0));localStorage.setItem('quackapprove-budget-month-names',JSON.stringify(budgetMonthNames));localStorage.setItem('quackapprove-budget-monthly',JSON.stringify(budgetMonthly));budgetEditing=true;document.getElementById('budgetEditTargets').textContent='✓ บันทึก';renderBudget();document.querySelector('.budget-table-wrap').scrollLeft=document.querySelector('.budget-table-wrap').scrollWidth;});
-  document.getElementById('budgetEditTargets')?.addEventListener('click',event=>{ if(budgetEditing){ document.querySelectorAll('[data-budget-target]').forEach(input=>budgetTargets[input.dataset.budgetTarget]=Math.max(0,Number(input.value)||0)); document.querySelectorAll('[data-budget-month-branch]').forEach(input=>{const branch=input.dataset.budgetMonthBranch,index=Number(input.dataset.budgetMonthIndex);budgetMonthly[branch][index]=Math.max(0,Number(input.value)||0);}); document.querySelectorAll('[data-budget-month-name]').forEach(input=>{const index=Number(input.dataset.budgetMonthName),name=input.value.trim();if(name)budgetMonthNames[index]=name;}); localStorage.setItem('quackapprove-budget-targets',JSON.stringify(budgetTargets));localStorage.setItem('quackapprove-budget-monthly',JSON.stringify(budgetMonthly));localStorage.setItem('quackapprove-budget-month-names',JSON.stringify(budgetMonthNames)); } budgetEditing=!budgetEditing; event.currentTarget.textContent=budgetEditing?'✓ บันทึก':'✎ แก้ไข'; renderBudget(); });
+  document.getElementById('budgetEditTargets')?.addEventListener('click',event=>{
+    if(budgetEditing){
+      const targetInputs=[...document.querySelectorAll('[data-budget-target]')],calculated={};
+      try{targetInputs.forEach(input=>calculated[input.dataset.budgetTarget]=budgetFormulaValue(input.value));}
+      catch(error){alert(`${error.message}\nตัวอย่างสูตร: =99000*12`);return;}
+      Object.assign(budgetTargets,calculated);
+      document.querySelectorAll('[data-budget-month-branch]').forEach(input=>{const branch=input.dataset.budgetMonthBranch,index=Number(input.dataset.budgetMonthIndex);budgetMonthly[branch][index]=Math.max(0,Number(input.value)||0);});
+      document.querySelectorAll('[data-budget-month-name]').forEach(input=>{const index=Number(input.dataset.budgetMonthName),name=input.value.trim();if(name)budgetMonthNames[index]=name;});
+      localStorage.setItem('quackapprove-budget-targets',JSON.stringify(budgetTargets));localStorage.setItem('quackapprove-budget-monthly',JSON.stringify(budgetMonthly));localStorage.setItem('quackapprove-budget-month-names',JSON.stringify(budgetMonthNames));
+    }
+    budgetEditing=!budgetEditing;event.currentTarget.textContent=budgetEditing?'✓ บันทึก':'✎ แก้ไข';renderBudget();
+  });
+  document.getElementById('budgetBranchBody')?.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.matches('[data-budget-target]')){event.preventDefault();document.getElementById('budgetEditTargets')?.click();}});
   document.addEventListener('click',event=>{ const button=event.target.closest('[data-budget-toggle]'); if(!button)return; const detail=document.getElementById(button.dataset.budgetToggle); if(detail) detail.hidden=!detail.hidden; });
   window.budgetReady=true;
   renderBudget();
