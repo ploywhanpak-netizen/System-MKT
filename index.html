@@ -91,8 +91,9 @@
     padding:24px; background:rgba(10,35,31,.58); backdrop-filter:blur(4px);
   }
   .event-modal[hidden]{ display:none; }
-  .event-form{ width:min(540px,100%); padding:30px; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(0,0,0,.25); }
-  .event-form-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+  .event-form{ width:calc(100vw - 48px); height:calc(100vh - 48px); overflow:hidden; display:flex; flex-direction:column; padding:0; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(0,0,0,.25); }
+  .event-form-head{ flex:0 0 auto; display:flex; justify-content:space-between; align-items:center; margin:0; padding:18px 26px; border-bottom:1px solid #dce8e4; background:#fff; }
+  .event-form-scroll{flex:1;min-height:0;overflow-y:auto;padding:22px 28px;scrollbar-gutter:stable}.event-form-scroll::-webkit-scrollbar{width:11px}.event-form-scroll::-webkit-scrollbar-track{background:#eef4f2}.event-form-scroll::-webkit-scrollbar-thumb{border:3px solid #eef4f2;border-radius:99px;background:#8eb8b1}
   .event-form-head h2{ font-size:23px; }
   .event-head-tools{ margin-left:auto; display:flex; align-items:center; gap:7px; }
   .event-head-action{ min-width:36px; height:36px; border:0; border-radius:9px; padding:0 10px; background:#eef6f3; color:#286b60; font:inherit; font-weight:800; cursor:pointer; }
@@ -104,9 +105,14 @@
   .event-field label{ color:#416d64; font-size:13px; font-weight:800; }
   .event-field input{ width:100%; border:1px solid #d7e4df; border-radius:10px; padding:11px 12px; font:inherit; color:var(--text); }
   .event-field input:focus{ outline:3px solid rgba(23,163,152,.15); border-color:var(--accent-teal); }
-  .event-daily-sales{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.event-daily-sale{display:grid;grid-template-columns:1fr 145px;align-items:center;gap:10px;padding:9px 11px;border:1px solid #dce8e4;border-radius:10px;background:#f8fbfa}.event-daily-sale span{color:#416d64;font-weight:800}.event-daily-sale input{text-align:right}.event-daily-total{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eaf6f3;color:#17695f;font-weight:900;text-align:right}.event-sales-summary{min-width:210px}.event-sales-line{display:flex;justify-content:space-between;gap:16px;padding:3px 0;color:#64768b;font-size:12px}.event-sales-line b{color:#17695f}.event-sales-total{margin-top:5px;padding-top:6px;border-top:1px solid #dce8e4;color:#17695f;font-weight:900;text-align:right}
-  .event-preview{ margin-top:18px; padding:13px 15px; border-radius:10px; background:#f2f8f6; color:#397f73; font-size:13px; }
-  .event-form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+  .event-daily-sales{display:flex;flex-direction:column;border:1px solid #dce8e4;border-radius:14px;background:#fff;overflow:hidden}.event-daily-sale{display:grid;grid-template-columns:1fr 165px;align-items:center;gap:12px;padding:10px 13px;border-bottom:1px solid #e7efec;background:#fff}.event-daily-sale:last-child{border-bottom:0}.event-daily-sale:nth-child(even){background:#f8fbfa}.event-daily-sale span{color:#416d64;font-weight:400}.event-daily-sale input{width:100%;height:40px;padding:8px 13px;border:1px solid #cfe1dc;border-radius:10px;background:#f7fbfa;color:#285f56;text-align:right;font:inherit;font-weight:600;transition:border-color .18s,box-shadow .18s,background .18s}.event-daily-sale input:hover{border-color:#8eb8b1;background:#fff}.event-daily-sale input:focus{outline:0;border-color:#20a598;background:#fff;box-shadow:0 0 0 3px rgba(32,165,152,.14)}.event-daily-sale input:disabled{opacity:1;border-color:#e0ebe7;background:#f2f7f5;color:#416d64}.event-daily-total{margin-top:10px;padding:11px 13px;border-radius:10px;background:#eaf6f3;color:#17695f;font-weight:900;text-align:right}.event-sales-summary{min-width:140px}.event-sales-line{display:flex;justify-content:space-between;gap:16px;padding:5px 0;border-bottom:1px solid #edf2f0;color:#64768b;font-size:12px}.event-sales-line:last-of-type{border-bottom:0}.event-sales-line b{color:#17695f}.event-sales-total{margin-top:5px;padding-top:7px;border-top:1px solid #dce8e4;color:#17695f;font-weight:900;text-align:right;white-space:nowrap}
+  .event-sales-chart{display:flex;align-items:flex-end;gap:8px;min-height:190px;margin-top:12px;padding:18px 14px 10px;border:1px solid #dce8e4;border-radius:11px;background:linear-gradient(#fff,#f7fbfa)}.event-chart-item{display:flex;flex:1;min-width:42px;height:155px;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.event-chart-value{color:#17695f;font-size:10px;font-weight:900;white-space:nowrap}.event-chart-bar{width:min(38px,70%);min-height:3px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#31a99c,#17695f);transition:height .2s ease}.event-chart-label{color:#738599;font-size:10px;white-space:nowrap}.event-chart-empty{margin:auto;color:#91a1b5;font-size:13px}
+  .event-sales-chart{overflow-x:auto}.event-sales-chart .event-chart-item{flex:0 0 66px}.event-section-title{margin:20px 0 9px;color:#285f56;font-size:14px;font-weight:900}.event-preview{ margin-top:16px; padding:13px 15px; border-radius:10px; background:#f2f8f6; color:#397f73; font-size:13px; }
+  .event-form.viewing .event-fields,.event-form.viewing .event-preview{display:none}
+  .event-form.viewing .event-section-title:first-of-type{margin-top:0}
+  .event-sales-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}.event-insight-card{padding:15px 16px;border:1px solid #dce8e4;border-radius:12px;background:#f7fbfa}.event-insight-card small{display:block;margin-bottom:7px;color:#6f8b84;font-weight:700}.event-insight-card strong{display:block;color:#17695f;font-size:18px}.event-sales-ranking{overflow:hidden;border:1px solid #dce8e4;border-radius:11px;background:#fff}.event-rank-row{display:grid;grid-template-columns:60px 1fr 170px;align-items:center;gap:12px;padding:12px 15px;border-bottom:1px solid #e7efec}.event-rank-row:last-child{border-bottom:0}.event-rank-row:nth-child(even){background:#f8fbfa}.event-rank-number{color:#6f8b84;font-weight:900;text-align:center}.event-rank-date{color:#416d64;font-weight:800}.event-rank-value{color:#17695f;font-weight:900;text-align:right}.event-rank-empty{padding:24px;text-align:center;color:#91a1b5}
+  @media(max-width:760px){.event-sales-insights{grid-template-columns:1fr}.event-rank-row{grid-template-columns:48px 1fr 110px}.event-form-scroll{padding:18px}.event-modal{padding:10px}.event-form{width:calc(100vw - 20px);height:calc(100vh - 20px)}}
+  .event-form-actions{ flex:0 0 auto; display:flex; justify-content:flex-end; gap:10px; margin:0; padding:16px 26px; border-top:1px solid #dce8e4; background:#fff; box-shadow:0 -8px 20px rgba(25,72,63,.05); }
   .event-cancel,.event-save{ border:0; border-radius:10px; padding:10px 18px; font:inherit; font-weight:800; cursor:pointer; }
   .event-cancel{ background:#eef2f0; color:#61716b; }
   .event-save{ background:var(--accent-teal); color:#fff; }
@@ -705,6 +711,8 @@
   .add-month-icon{ width:68px; height:68px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:#e3f2ee; font-size:38px; font-weight:400; }
   .add-month-note{ color:#82aaa2; font-size:12px; font-weight:600; }
   .event-page-card{ padding:28px; border-radius:22px; background:#fff; border:1px solid var(--line); box-shadow:0 10px 24px rgba(21,65,56,.07); }
+  .event-summary-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:20px 0}.event-summary-filters{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.event-filter-field{display:flex;flex-direction:column;gap:6px;color:#62827b;font-size:12px;font-weight:700}.event-filter-field select,.event-filter-field input{height:42px;min-width:150px;padding:8px 12px;border:1px solid #cfe1dc;border-radius:11px;background:#f7fbfa;color:#285f56;font:inherit}.event-filter-field select:focus,.event-filter-field input:focus{outline:0;border-color:#20a598;box-shadow:0 0 0 3px rgba(32,165,152,.14)}.event-summary-cards{display:grid;grid-template-columns:repeat(2,minmax(190px,1fr));gap:12px}.event-summary-card{min-width:190px;padding:15px 18px;border:1px solid #d5e7e2;border-radius:14px;background:linear-gradient(135deg,#f5fbf9,#e8f5f2)}.event-summary-card small{display:block;margin-bottom:5px;color:#648c83;font-weight:700}.event-summary-card strong{display:block;color:#17695f;font-size:23px}.event-filter-value[hidden]{display:none}
+  .event-data-actions{display:flex;gap:8px;align-items:center}.event-data-action{height:42px;padding:0 14px;border:1px solid #cfe1dc;border-radius:11px;background:#fff;color:#286b60;font:inherit;font-weight:800;cursor:pointer}.event-data-action:hover{border-color:#78aea4;background:#eef8f5}.event-data-action.export{background:#e8f5f2}.event-import-input{display:none}
   .event-table-wrap{ overflow-x:auto; border:1px solid #dce9e5; border-radius:14px; }
   .event-data-table{ min-width:1120px; }
   .event-data-table th{ background:#f4f8f6; white-space:nowrap; }
@@ -713,6 +721,7 @@
   .sales-input{ width:150px; border:1px solid #cfe1dc; border-radius:9px; padding:9px 10px; font:inherit; text-align:right; }
   .sales-input:focus{ outline:3px solid rgba(23,163,152,.14); border-color:var(--accent-teal); }
   .event-empty-row td{ padding:42px; text-align:center; color:#90aaa3; }
+  @media(max-width:900px){.event-summary-toolbar{align-items:stretch;flex-direction:column}.event-summary-cards{width:100%}}@media(max-width:560px){.event-summary-cards{grid-template-columns:1fr}.event-filter-field,.event-filter-field select,.event-filter-field input{width:100%}}
   [data-page="create-content"]{
     min-height:100vh; padding:0 48px 52px; background-color:#f6faf8;
     background-image:radial-gradient(#d5e9e3 1.35px, transparent 1.35px); background-size:26px 26px;
@@ -995,14 +1004,23 @@
   <div class="event-modal" id="eventModal" hidden>
     <form class="event-form" id="eventForm">
       <div class="event-form-head"><h2>🎪 เพิ่ม Event</h2><button class="event-close" type="button" aria-label="ปิด">×</button></div>
-      <div class="event-fields">
-        <div class="event-field wide"><label for="eventNameInput">ชื่องาน</label><input id="eventNameInput" name="eventName" required placeholder="เช่น ออกบูธงาน Summer Market"></div>
-        <div class="event-field wide"><label for="eventLocationInput">โลเคชัน</label><input id="eventLocationInput" name="eventLocation" required placeholder="เช่น เซ็นทรัลเวิลด์"></div>
-        <div class="event-field"><label for="eventStartInput">วันที่เริ่ม</label><input id="eventStartInput" name="eventStart" type="date" required></div>
-        <div class="event-field"><label for="eventEndInput">วันที่สิ้นสุด</label><input id="eventEndInput" name="eventEnd" type="date" required></div>
-        <div class="event-field wide"><label>ยอดขายรายวัน</label><div class="event-daily-sales" id="eventDailySalesList"></div><div class="event-daily-total" id="eventDailySalesTotal">ยอดรวม ฿0.00</div></div>
+      <div class="event-form-scroll">
+        <div class="event-fields">
+          <div class="event-field wide"><label for="eventNameInput">ชื่องาน</label><input id="eventNameInput" name="eventName" required placeholder="เช่น ออกบูธงาน Summer Market"></div>
+          <div class="event-field wide"><label for="eventLocationInput">โลเคชัน</label><input id="eventLocationInput" name="eventLocation" required placeholder="เช่น เซ็นทรัลเวิลด์"></div>
+          <div class="event-field"><label for="eventStartInput">วันที่เริ่ม</label><input id="eventStartInput" name="eventStart" type="date" required></div>
+          <div class="event-field"><label for="eventEndInput">วันที่สิ้นสุด</label><input id="eventEndInput" name="eventEnd" type="date" required></div>
+        </div>
+        <div class="event-preview" id="eventPreview">ระบบจะคำนวณวันที่เหลือและระยะเวลาจัดงานให้อัตโนมัติ</div>
+        <div class="event-sales-insights">
+          <div class="event-insight-card"><small>วันที่ขายดีที่สุด</small><strong id="eventBestSalesDate">—</strong></div>
+          <div class="event-insight-card"><small>ยอดขายสูงสุด</small><strong id="eventBestSalesAmount">฿0.00</strong></div>
+          <div class="event-insight-card"><small>จำนวนวันที่มียอดขาย</small><strong id="eventSalesDaysCount">0 วัน</strong></div>
+        </div>
+        <div class="event-section-title">📊 กราฟยอดขายรายวัน</div><div class="event-sales-chart" id="eventDailySalesChart"><div class="event-chart-empty">กราฟจะแสดงเมื่อกรอกยอดขาย</div></div>
+        <div class="event-section-title">🏆 อันดับยอดขายรายวัน</div><div class="event-sales-ranking" id="eventSalesRanking"><div class="event-rank-empty">อันดับจะแสดงเมื่อกรอกยอดขาย</div></div>
+        <div class="event-section-title">รายการยอดขายแยกตามวันที่</div><div class="event-daily-sales" id="eventDailySalesList"></div><div class="event-daily-total" id="eventDailySalesTotal">ยอดรวม ฿0.00</div>
       </div>
-      <div class="event-preview" id="eventPreview">ระบบจะคำนวณวันที่เหลือและระยะเวลาจัดงานให้อัตโนมัติ</div>
       <div class="event-form-actions"><button class="event-cancel" type="button">ยกเลิก</button><button class="event-save" type="submit">บันทึก Event</button></div>
     </form>
   </div>
@@ -1254,8 +1272,23 @@
       <div class="event-page-card">
         <div class="table-head">🎪 ตาราง Event ทั้งหมด</div>
         <div class="table-sub">รายการจากปุ่มเพิ่ม Event ที่หน้าแรกจะเข้ามาในตารางนี้อัตโนมัติ</div>
+        <div class="event-summary-toolbar">
+          <div class="event-summary-filters">
+            <label class="event-filter-field">ดูข้อมูลตามช่วง
+              <select id="eventSummaryPeriod"><option value="all">ทั้งหมด</option><option value="day">วัน</option><option value="month">เดือน</option><option value="year">ปี</option></select>
+            </label>
+            <label class="event-filter-field event-filter-value" id="eventDayFilterWrap" hidden>เลือกวัน<input id="eventDayFilter" type="date"></label>
+            <label class="event-filter-field event-filter-value" id="eventMonthFilterWrap" hidden>เลือกเดือน<input id="eventMonthFilter" type="month"></label>
+            <label class="event-filter-field event-filter-value" id="eventYearFilterWrap" hidden>เลือกปี<input id="eventYearFilter" type="number" min="2020" max="2100" step="1"></label>
+            <div class="event-data-actions"><button class="event-data-action export" id="eventExportButton" type="button">⇩ Export</button><button class="event-data-action" id="eventImportButton" type="button">⇧ Import</button><input class="event-import-input" id="eventImportInput" type="file" accept="application/json,.json"></div>
+          </div>
+          <div class="event-summary-cards">
+            <div class="event-summary-card"><small>📍 ไปทั้งหมด</small><strong id="eventSummaryPlaces">0 ที่</strong></div>
+            <div class="event-summary-card"><small>💰 ยอดขายรวม</small><strong id="eventSummarySales">฿0.00</strong></div>
+          </div>
+        </div>
         <div class="event-table-wrap"><table class="event-data-table">
-          <thead><tr><th>ชื่องาน</th><th>โลเคชัน</th><th>วันที่เริ่ม</th><th>วันที่สิ้นสุด</th><th>อีกกี่วันจะถึง</th><th>ระยะเวลาจัดงาน</th><th>ยอดขายรายวัน / รวม</th></tr></thead>
+          <thead><tr><th>ชื่องาน</th><th>โลเคชัน</th><th>วันที่เริ่ม</th><th>วันที่สิ้นสุด</th><th>อีกกี่วันจะถึง</th><th>ระยะเวลาจัดงาน</th><th>ยอดรวม</th><th>เฉลี่ยต่อวัน</th></tr></thead>
           <tbody id="eventTableBody"></tbody>
         </table></div>
       </div>
@@ -1465,6 +1498,20 @@
   const eventEndInput = document.getElementById('eventEndInput');
   const eventDailySalesList = document.getElementById('eventDailySalesList');
   const eventDailySalesTotal = document.getElementById('eventDailySalesTotal');
+  const eventDailySalesChart = document.getElementById('eventDailySalesChart');
+  const eventBestSalesDate = document.getElementById('eventBestSalesDate');
+  const eventBestSalesAmount = document.getElementById('eventBestSalesAmount');
+  const eventSalesDaysCount = document.getElementById('eventSalesDaysCount');
+  const eventSalesRanking = document.getElementById('eventSalesRanking');
+  const eventSummaryPeriod = document.getElementById('eventSummaryPeriod');
+  const eventDayFilter = document.getElementById('eventDayFilter');
+  const eventMonthFilter = document.getElementById('eventMonthFilter');
+  const eventYearFilter = document.getElementById('eventYearFilter');
+  const eventSummaryPlaces = document.getElementById('eventSummaryPlaces');
+  const eventSummarySales = document.getElementById('eventSummarySales');
+  const eventExportButton = document.getElementById('eventExportButton');
+  const eventImportButton = document.getElementById('eventImportButton');
+  const eventImportInput = document.getElementById('eventImportInput');
   const eventPreview = document.getElementById('eventPreview');
   const eventFormTitle = eventForm.querySelector('.event-form-head h2');
   const eventSaveButton = eventForm.querySelector('.event-save');
@@ -1494,7 +1541,9 @@
     };
   };
   const captureEventDailySales=()=>eventDailySalesList.querySelectorAll('[data-event-sales-date]').forEach(input=>eventDailySalesDraft[input.dataset.eventSalesDate]=input.value);
-  const updateEventDailyTotal=()=>{const total=Object.values(eventDailySalesDraft).reduce((sum,value)=>sum+(Number(value)||0),0);eventDailySalesTotal.textContent=`ยอดรวม ฿${total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`};
+  const renderEventDailyChart=()=>{const entries=Object.entries(eventDailySalesDraft).filter(([date])=>eventStartInput.value&&eventEndInput.value&&date>=eventStartInput.value&&date<=eventEndInput.value),max=Math.max(0,...entries.map(([,value])=>Number(value)||0));if(!entries.length||!max){eventDailySalesChart.innerHTML='<div class="event-chart-empty">กราฟจะแสดงเมื่อกรอกยอดขาย</div>';return;}eventDailySalesChart.innerHTML=entries.map(([date,value])=>{const amount=Number(value)||0,height=Math.max(3,Math.round(amount/max*112)),shown=parseLocalDate(date).toLocaleDateString('th-TH',{day:'numeric',month:'short'});return `<div class="event-chart-item"><div class="event-chart-value">${amount.toLocaleString('th-TH')}</div><div class="event-chart-bar" style="height:${height}px" title="${shown}: ฿${amount.toLocaleString('th-TH')}"></div><div class="event-chart-label">${shown}</div></div>`}).join('')};
+  const renderEventSalesInsights=()=>{const entries=Object.entries(eventDailySalesDraft).filter(([date,value])=>(!eventStartInput.value||!eventEndInput.value||(date>=eventStartInput.value&&date<=eventEndInput.value))&&(Number(value)||0)>0).map(([date,value])=>({date,amount:Number(value)||0})).sort((a,b)=>b.amount-a.amount||a.date.localeCompare(b.date)),best=entries[0],formatDate=date=>parseLocalDate(date).toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short',year:'numeric'}),formatMoney=value=>`฿${value.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;eventBestSalesDate.textContent=best?formatDate(best.date):'—';eventBestSalesAmount.textContent=best?formatMoney(best.amount):'฿0.00';eventSalesDaysCount.textContent=`${entries.length} วัน`;eventSalesRanking.innerHTML=entries.length?entries.map((item,index)=>`<div class="event-rank-row"><span class="event-rank-number">${index===0?'🥇':index===1?'🥈':index===2?'🥉':`#${index+1}`}</span><span class="event-rank-date">${formatDate(item.date)}</span><span class="event-rank-value">${formatMoney(item.amount)}</span></div>`).join(''):'<div class="event-rank-empty">อันดับจะแสดงเมื่อกรอกยอดขาย</div>'};
+  const updateEventDailyTotal=()=>{const total=Object.entries(eventDailySalesDraft).filter(([date])=>!eventStartInput.value||!eventEndInput.value||(date>=eventStartInput.value&&date<=eventEndInput.value)).reduce((sum,[,value])=>sum+(Number(value)||0),0);eventDailySalesTotal.textContent=`ยอดรวม ฿${total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;renderEventDailyChart();renderEventSalesInsights()};
   const renderEventDailySales=()=>{
     captureEventDailySales();const result=calculateEventDays();
     if(!result||result.invalid){eventDailySalesList.innerHTML='<div style="color:#91a1b5">กรุณาระบุวันที่เริ่มและสิ้นสุดก่อน</div>';updateEventDailyTotal();return;}
@@ -1547,6 +1596,7 @@
     if(!eventApplyingCloud&&window.eventCloud?.save)window.eventCloud.save(eventRecords);
   };
   const setEventFormEditable = editable => {
+    eventForm.classList.toggle('viewing',!editable);
     Array.from(eventForm.elements).filter(element=>element.matches('input')).forEach(input=>input.disabled=!editable);
     eventSaveButton.disabled=!editable;
     eventSaveButton.hidden=!editable;
@@ -1578,13 +1628,20 @@
       countdown:daysUntil > 0 ? `อีก ${daysUntil} วัน` : daysUntil === 0 ? 'วันนี้' : 'เริ่มแล้ว'
     };
   };
+  const getEventSummaryRange=()=>{const period=eventSummaryPeriod.value;if(period==='day'&&eventDayFilter.value)return{start:eventDayFilter.value,end:eventDayFilter.value};if(period==='month'&&eventMonthFilter.value){const [year,month]=eventMonthFilter.value.split('-').map(Number),lastDay=new Date(year,month,0).getDate();return{start:`${year}-${String(month).padStart(2,'0')}-01`,end:`${year}-${String(month).padStart(2,'0')}-${lastDay}`};}if(period==='year'&&eventYearFilter.value)return{start:`${eventYearFilter.value}-01-01`,end:`${eventYearFilter.value}-12-31`};return null};
+  const recordMatchesEventRange=(record,range)=>!range||(record.start<=range.end&&record.end>=range.start);
   const renderEventTable = () => {
     const body = document.getElementById('eventTableBody');
     body.replaceChildren();
     const headerRow=body.closest('table').tHead.rows[0];
     if(!headerRow.querySelector('[data-event-actions-head]')){const header=document.createElement('th');header.dataset.eventActionsHead='true';header.textContent='จัดการ';headerRow.appendChild(header);}
     const thaiDate = new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric'});
-    eventRecords.forEach(record => {
+    const selectedRange=getEventSummaryRange(),filteredRecords=eventRecords.filter(record=>recordMatchesEventRange(record,selectedRange));
+    const locations=new Set(filteredRecords.map(record=>(record.location||'').trim().toLocaleLowerCase('th-TH')).filter(Boolean));
+    const summarySales=filteredRecords.reduce((total,record)=>{const dailySales=record.dailySales&&typeof record.dailySales==='object'?record.dailySales:record.sales?{[record.start]:record.sales}:{};return total+Object.entries(dailySales).filter(([date])=>!selectedRange||(date>=selectedRange.start&&date<=selectedRange.end)).reduce((sum,[,value])=>sum+(Number(value)||0),0)},0);
+    eventSummaryPlaces.textContent=`${locations.size} ที่`;
+    eventSummarySales.textContent=`฿${summarySales.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    filteredRecords.forEach(record => {
       const metrics = getEventMetrics(record);
       const row = body.insertRow();
       [record.name,record.location,thaiDate.format(metrics.start),thaiDate.format(metrics.end),metrics.countdown,`${metrics.duration} วัน`].forEach(value => {
@@ -1592,13 +1649,16 @@
         cell.textContent = value;
       });
       const salesCell = row.insertCell();
-      const dailySales=record.dailySales&&typeof record.dailySales==='object'?record.dailySales:record.sales?{[record.start]:record.sales}:{},salesEntries=Object.entries(dailySales).filter(([,value])=>value!==''&&value!=null),salesTotal=salesEntries.reduce((sum,[,value])=>sum+(Number(value)||0),0);
-      salesCell.innerHTML=`<div class="event-sales-summary">${salesEntries.length?salesEntries.map(([date,value])=>`<div class="event-sales-line"><span>${thaiDate.format(parseLocalDate(date))}</span><b>฿${(Number(value)||0).toLocaleString('th-TH',{minimumFractionDigits:2})}</b></div>`).join(''):'<span style="color:#91a1b5">ยังไม่มียอดขายรายวัน</span>'}<div class="event-sales-total">รวม ฿${salesTotal.toLocaleString('th-TH',{minimumFractionDigits:2})}</div></div>`;
+      const dailySales=record.dailySales&&typeof record.dailySales==='object'?record.dailySales:record.sales?{[record.start]:record.sales}:{},salesTotal=Object.values(dailySales).reduce((sum,value)=>sum+(Number(value)||0),0);
+      salesCell.innerHTML=`<div class="event-sales-summary"><div class="event-sales-total">Total ฿${salesTotal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>`;
+      const averageCell=row.insertCell(),averagePerDay=metrics.duration?salesTotal/metrics.duration:0;
+      averageCell.innerHTML=`<div class="event-sales-total">฿${averagePerDay.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
       const actionCell=row.insertCell();
       actionCell.innerHTML='<div class="event-row-actions"><button class="edit" type="button" title="แก้ไข" aria-label="แก้ไข">✎</button></div>';
       actionCell.querySelector('.edit').addEventListener('click',()=>openEventEditor(record,true));
       row.addEventListener('click',event=>{if(!event.target.closest('input,button'))openEventEditor(record,false);});
     });
+    if(!filteredRecords.length){const row=body.insertRow();row.className='event-empty-row';const cell=row.insertCell();cell.colSpan=9;cell.textContent='ไม่พบ Event ในช่วงเวลาที่เลือก';}
     const latest = eventRecords[eventRecords.length - 1];
     const eventBox=document.querySelector('.event-box');
     if (latest) {
@@ -1611,6 +1671,11 @@
       document.getElementById('eventDuration').textContent = `${metrics.duration} วัน`;
     }else eventBox.hidden=true;
   };
+  const updateEventSummaryFilter=()=>{const period=eventSummaryPeriod.value;document.getElementById('eventDayFilterWrap').hidden=period!=='day';document.getElementById('eventMonthFilterWrap').hidden=period!=='month';document.getElementById('eventYearFilterWrap').hidden=period!=='year';renderEventTable()};
+  const eventToday=new Date(),eventTodayIso=eventToday.toLocaleDateString('en-CA');eventDayFilter.value=eventTodayIso;eventMonthFilter.value=eventTodayIso.slice(0,7);eventYearFilter.value=eventToday.getFullYear();eventSummaryPeriod.addEventListener('change',updateEventSummaryFilter);[eventDayFilter,eventMonthFilter,eventYearFilter].forEach(input=>input.addEventListener('change',renderEventTable));
+  eventExportButton.addEventListener('click',()=>{const backup={app:'QuackApprove System-MKT',version:1,exportedAt:new Date().toISOString(),events:eventRecords},blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`system-mkt-events-${new Date().toLocaleDateString('en-CA')}.json`;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url)});
+  eventImportButton.addEventListener('click',()=>{eventImportInput.value='';eventImportInput.click()});
+  eventImportInput.addEventListener('change',async()=>{const file=eventImportInput.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),source=Array.isArray(parsed)?parsed:parsed?.events;if(!Array.isArray(source))throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');const imported=source.map((record,index)=>{if(!record||typeof record!=='object'||!record.name||!record.location||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(record.start||'')||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(record.end||'')||record.end<record.start)return null;const dailySales=record.dailySales&&typeof record.dailySales==='object'&&!Array.isArray(record.dailySales)?Object.fromEntries(Object.entries(record.dailySales).filter(([date,value])=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)&&Number.isFinite(Number(value))).map(([date,value])=>[date,Number(value)])):{};return{id:String(record.id||`event-import-${Date.now()}-${index}`),name:String(record.name),location:String(record.location),start:record.start,end:record.end,dailySales}}).filter(Boolean);if(!imported.length)throw new Error('ไม่พบข้อมูล Event ที่นำเข้าได้');if(!window.confirm(`นำเข้า ${imported.length} Event และรวมกับข้อมูลเดิมหรือไม่?`))return;const merged=new Map(eventRecords.map(record=>[record.id,record]));imported.forEach(record=>merged.set(record.id,record));eventRecords=Array.from(merged.values());saveEventRecords();renderEventTable();window.alert(`นำเข้าสำเร็จ ${imported.length} Event`)}catch(error){window.alert(`นำเข้าไม่สำเร็จ: ${error.message}`)}});
   window.eventApp={readRecords:()=>eventRecords,applyCloudRecords:records=>{eventApplyingCloud=true;eventRecords=Array.isArray(records)?records:[];try{localStorage.setItem('quackapprove-events',JSON.stringify(eventRecords))}catch(_){}renderEventTable();eventApplyingCloud=false}};
   renderEventTable();
   document.querySelector('.event-box').addEventListener('click',()=>{const latest=eventRecords[eventRecords.length-1];if(latest)openEventEditor(latest,false);});
