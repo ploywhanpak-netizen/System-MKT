@@ -104,6 +104,7 @@
   .event-field label{ color:#416d64; font-size:13px; font-weight:800; }
   .event-field input{ width:100%; border:1px solid #d7e4df; border-radius:10px; padding:11px 12px; font:inherit; color:var(--text); }
   .event-field input:focus{ outline:3px solid rgba(23,163,152,.15); border-color:var(--accent-teal); }
+  .event-daily-sales{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.event-daily-sale{display:grid;grid-template-columns:1fr 145px;align-items:center;gap:10px;padding:9px 11px;border:1px solid #dce8e4;border-radius:10px;background:#f8fbfa}.event-daily-sale span{color:#416d64;font-weight:800}.event-daily-sale input{text-align:right}.event-daily-total{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eaf6f3;color:#17695f;font-weight:900;text-align:right}.event-sales-summary{min-width:210px}.event-sales-line{display:flex;justify-content:space-between;gap:16px;padding:3px 0;color:#64768b;font-size:12px}.event-sales-line b{color:#17695f}.event-sales-total{margin-top:5px;padding-top:6px;border-top:1px solid #dce8e4;color:#17695f;font-weight:900;text-align:right}
   .event-preview{ margin-top:18px; padding:13px 15px; border-radius:10px; background:#f2f8f6; color:#397f73; font-size:13px; }
   .event-form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
   .event-cancel,.event-save{ border:0; border-radius:10px; padding:10px 18px; font:inherit; font-weight:800; cursor:pointer; }
@@ -999,6 +1000,7 @@
         <div class="event-field wide"><label for="eventLocationInput">โลเคชัน</label><input id="eventLocationInput" name="eventLocation" required placeholder="เช่น เซ็นทรัลเวิลด์"></div>
         <div class="event-field"><label for="eventStartInput">วันที่เริ่ม</label><input id="eventStartInput" name="eventStart" type="date" required></div>
         <div class="event-field"><label for="eventEndInput">วันที่สิ้นสุด</label><input id="eventEndInput" name="eventEnd" type="date" required></div>
+        <div class="event-field wide"><label>ยอดขายรายวัน</label><div class="event-daily-sales" id="eventDailySalesList"></div><div class="event-daily-total" id="eventDailySalesTotal">ยอดรวม ฿0.00</div></div>
       </div>
       <div class="event-preview" id="eventPreview">ระบบจะคำนวณวันที่เหลือและระยะเวลาจัดงานให้อัตโนมัติ</div>
       <div class="event-form-actions"><button class="event-cancel" type="button">ยกเลิก</button><button class="event-save" type="submit">บันทึก Event</button></div>
@@ -1253,7 +1255,7 @@
         <div class="table-head">🎪 ตาราง Event ทั้งหมด</div>
         <div class="table-sub">รายการจากปุ่มเพิ่ม Event ที่หน้าแรกจะเข้ามาในตารางนี้อัตโนมัติ</div>
         <div class="event-table-wrap"><table class="event-data-table">
-          <thead><tr><th>ชื่องาน</th><th>โลเคชัน</th><th>วันที่เริ่ม</th><th>วันที่สิ้นสุด</th><th>อีกกี่วันจะถึง</th><th>ระยะเวลาจัดงาน</th><th>ยอดขาย (บาท)</th></tr></thead>
+          <thead><tr><th>ชื่องาน</th><th>โลเคชัน</th><th>วันที่เริ่ม</th><th>วันที่สิ้นสุด</th><th>อีกกี่วันจะถึง</th><th>ระยะเวลาจัดงาน</th><th>ยอดขายรายวัน / รวม</th></tr></thead>
           <tbody id="eventTableBody"></tbody>
         </table></div>
       </div>
@@ -1461,6 +1463,8 @@
   const eventForm = document.getElementById('eventForm');
   const eventStartInput = document.getElementById('eventStartInput');
   const eventEndInput = document.getElementById('eventEndInput');
+  const eventDailySalesList = document.getElementById('eventDailySalesList');
+  const eventDailySalesTotal = document.getElementById('eventDailySalesTotal');
   const eventPreview = document.getElementById('eventPreview');
   const eventFormTitle = eventForm.querySelector('.event-form-head h2');
   const eventSaveButton = eventForm.querySelector('.event-save');
@@ -1468,7 +1472,7 @@
   eventHeadTools.className = 'event-head-tools';
   eventHeadTools.innerHTML = '<button class="event-head-action edit" type="button" title="แก้ไข Event" aria-label="แก้ไข Event">✎</button>';
   eventForm.querySelector('.event-form-head').insertBefore(eventHeadTools,eventForm.querySelector('.event-close'));
-  let activeEventId = null;
+  let activeEventId = null,eventDailySalesDraft={};
   const dayMs = 86400000;
   const parseLocalDate = value => {
     const [year, month, day] = value.split('-').map(Number);
@@ -1489,18 +1493,31 @@
       end
     };
   };
+  const captureEventDailySales=()=>eventDailySalesList.querySelectorAll('[data-event-sales-date]').forEach(input=>eventDailySalesDraft[input.dataset.eventSalesDate]=input.value);
+  const updateEventDailyTotal=()=>{const total=Object.values(eventDailySalesDraft).reduce((sum,value)=>sum+(Number(value)||0),0);eventDailySalesTotal.textContent=`ยอดรวม ฿${total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`};
+  const renderEventDailySales=()=>{
+    captureEventDailySales();const result=calculateEventDays();
+    if(!result||result.invalid){eventDailySalesList.innerHTML='<div style="color:#91a1b5">กรุณาระบุวันที่เริ่มและสิ้นสุดก่อน</div>';updateEventDailyTotal();return;}
+    const formatter=new Intl.DateTimeFormat('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),dates=[];
+    for(let cursor=new Date(result.start);cursor<=result.end;cursor=new Date(cursor.getTime()+dayMs))dates.push(cursor.toLocaleDateString('en-CA'));
+    eventDailySalesList.innerHTML=dates.map(date=>`<label class="event-daily-sale"><span>${formatter.format(parseLocalDate(date))}</span><input type="number" min="0" step="0.01" data-event-sales-date="${date}" value="${eventDailySalesDraft[date]??''}" placeholder="ยอดขาย 0.00"></label>`).join('');
+    eventDailySalesList.querySelectorAll('[data-event-sales-date]').forEach(input=>input.addEventListener('input',()=>{eventDailySalesDraft[input.dataset.eventSalesDate]=input.value;updateEventDailyTotal()}));updateEventDailyTotal();
+  };
   const updateEventPreview = () => {
     const result = calculateEventDays();
     if (!result) {
       eventPreview.textContent = 'กรอกวันเริ่มและวันสิ้นสุด เพื่อคำนวณระยะเวลา';
+      renderEventDailySales();
       return;
     }
     if (result.invalid) {
       eventPreview.textContent = 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม';
+      renderEventDailySales();
       return;
     }
     const countdown = result.daysUntil > 0 ? `อีก ${result.daysUntil} วัน` : result.daysUntil === 0 ? 'วันนี้' : 'เริ่มแล้ว';
     eventPreview.textContent = `${countdown} • ระยะเวลาจัดงาน ${result.duration} วัน`;
+    renderEventDailySales();
   };
   document.getElementById('addEventButton').addEventListener('click', () => openEventEditor(null,true));
   [eventStartInput,eventEndInput].forEach(input => input.addEventListener('input', updateEventPreview));
@@ -1538,11 +1555,13 @@
   const openEventEditor = (record,editable=false) => {
     activeEventId=record?.id||null;
     eventForm.reset();
+    eventDailySalesList.innerHTML='';
+    eventDailySalesDraft=record?.dailySales&&typeof record.dailySales==='object'?{...record.dailySales}:record?.sales?{[record.start]:record.sales}:{};
     if(record){eventForm.eventName.value=record.name;eventForm.eventLocation.value=record.location;eventStartInput.value=record.start;eventEndInput.value=record.end;eventFormTitle.textContent='🎪 รายละเอียด Event';}
     else{eventFormTitle.textContent='🎪 เพิ่ม Event';}
     eventHeadTools.hidden=!record;
-    setEventFormEditable(editable||!record);
     updateEventPreview();
+    setEventFormEditable(editable||!record);
     eventModal.hidden=false;
   };
   eventHeadTools.querySelector('.edit').addEventListener('click',()=>{setEventFormEditable(true);eventFormTitle.textContent='✎ แก้ไข Event';});
@@ -1573,19 +1592,8 @@
         cell.textContent = value;
       });
       const salesCell = row.insertCell();
-      const salesInput = document.createElement('input');
-      salesInput.className = 'sales-input';
-      salesInput.type = 'number';
-      salesInput.min = '0';
-      salesInput.step = '0.01';
-      salesInput.placeholder = '0.00';
-      salesInput.value = record.sales;
-      salesInput.setAttribute('aria-label', `ยอดขาย ${record.name}`);
-      salesInput.addEventListener('input', () => {
-        record.sales = salesInput.value;
-        saveEventRecords();
-      });
-      salesCell.appendChild(salesInput);
+      const dailySales=record.dailySales&&typeof record.dailySales==='object'?record.dailySales:record.sales?{[record.start]:record.sales}:{},salesEntries=Object.entries(dailySales).filter(([,value])=>value!==''&&value!=null),salesTotal=salesEntries.reduce((sum,[,value])=>sum+(Number(value)||0),0);
+      salesCell.innerHTML=`<div class="event-sales-summary">${salesEntries.length?salesEntries.map(([date,value])=>`<div class="event-sales-line"><span>${thaiDate.format(parseLocalDate(date))}</span><b>฿${(Number(value)||0).toLocaleString('th-TH',{minimumFractionDigits:2})}</b></div>`).join(''):'<span style="color:#91a1b5">ยังไม่มียอดขายรายวัน</span>'}<div class="event-sales-total">รวม ฿${salesTotal.toLocaleString('th-TH',{minimumFractionDigits:2})}</div></div>`;
       const actionCell=row.insertCell();
       actionCell.innerHTML='<div class="event-row-actions"><button class="edit" type="button" title="แก้ไข" aria-label="แก้ไข">✎</button></div>';
       actionCell.querySelector('.edit').addEventListener('click',()=>openEventEditor(record,true));
@@ -1612,8 +1620,9 @@
     const result = calculateEventDays();
     if (!result || result.invalid) { updateEventPreview(); return; }
     const existing=eventRecords.find(record=>record.id===activeEventId);
-    if(existing){existing.name=eventForm.eventName.value;existing.location=eventForm.eventLocation.value;existing.start=eventStartInput.value;existing.end=eventEndInput.value;}
-    else eventRecords.push({id:`event-${Date.now()}`,name:eventForm.eventName.value,location:eventForm.eventLocation.value,start:eventStartInput.value,end:eventEndInput.value,sales:''});
+    captureEventDailySales();const dailySales=Object.fromEntries(Object.entries(eventDailySalesDraft).filter(([date])=>date>=eventStartInput.value&&date<=eventEndInput.value));
+    if(existing){existing.name=eventForm.eventName.value;existing.location=eventForm.eventLocation.value;existing.start=eventStartInput.value;existing.end=eventEndInput.value;existing.dailySales=dailySales;delete existing.sales;}
+    else eventRecords.push({id:`event-${Date.now()}`,name:eventForm.eventName.value,location:eventForm.eventLocation.value,start:eventStartInput.value,end:eventEndInput.value,dailySales});
     saveEventRecords();
     renderEventTable();
     eventForm.reset();
