@@ -1,0 +1,22 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "System-MKT",
+        "supportEmail": "ploywhanpak@gmail.com",
+        "authorizedRedirectUris": [
+          "https://ploywhanpak-netizen.github.io"
+        ]
+      }
+    },
+    "authorizedDomains": [
+      "localhost",
+      "ploywhanpak-netizen.github.io",
+      "system-mkt-whanpak.firebaseapp.com"
+    ]
+  }
+}

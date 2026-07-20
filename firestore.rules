@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users/{userId}/workLogs/{date}
+    // Fields:
+    //   ownerUid: string, required, immutable, must match authenticated UID
+    //   date: string, required, immutable, YYYY-MM-DD format, max 10 chars
+    //   payload: string, required, JSON-encoded work-log data, max 50,000 chars
+    //   updatedAt: timestamp, required, supplied by the server
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function uidUnchanged(userId) {
+      return request.resource.data.ownerUid == request.auth.uid &&
+        request.resource.data.ownerUid == userId;
+    }
+
+    function uidNotModified() {
+      return request.resource.data.ownerUid == resource.data.ownerUid;
+    }
+
+    function isValidWorkLog(data, userId, dateId) {
+      return data.keys().hasAll(['ownerUid', 'date', 'payload', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerUid', 'date', 'payload', 'updatedAt']) &&
+        data.ownerUid is string &&
+        data.ownerUid.size() > 0 &&
+        data.ownerUid.size() <= 128 &&
+        data.ownerUid == userId &&
+        data.date is string &&
+        data.date.size() == 10 &&
+        data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.date == dateId &&
+        data.payload is string &&
+        data.payload.size() > 0 &&
+        data.payload.size() <= 50000 &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    match /users/{userId}/workLogs/{dateId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        uidUnchanged(userId) &&
+        isValidWorkLog(request.resource.data, userId, dateId);
+      allow update: if isOwner(userId) &&
+        uidUnchanged(userId) &&
+        uidNotModified() &&
+        request.resource.data.date == resource.data.date &&
+        isValidWorkLog(request.resource.data, userId, dateId);
+      allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
