@@ -773,6 +773,7 @@
   .gallery-card.hidden{ display:none; }
   .gallery-status-dot{ position:absolute; top:13px; right:13px; width:15px; height:15px; border-radius:50%; border:2px solid #fff; z-index:2; }
   .gallery-card-media{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; color:#83b9af; font-size:13px; font-weight:700; }
+  .gallery-card-image{ width:100%; height:100%; object-fit:cover; display:block; }
   .gallery-media-icon{ font-size:36px; }
   .gallery-card-badge{ position:absolute; left:14px; top:14px; z-index:2; border-radius:999px; padding:6px 12px; background:#f5ab18; color:#674c0a; font-size:11px; font-weight:800; }
   .gallery-card[data-status="pending"] .gallery-card-badge{
@@ -791,6 +792,8 @@
   .gallery-close{ width:38px; height:38px; border:0; border-radius:50%; background:transparent; color:#57988d; font-size:28px; cursor:pointer; }
   .gallery-viewer{ position:relative; min-height:320px; display:flex; align-items:center; justify-content:center; border-radius:14px; background:#f1f7f5; color:#82b7ad; }
   .gallery-viewer-center{ display:flex; flex-direction:column; align-items:center; gap:10px; font-weight:700; }
+  .gallery-viewer-center.has-image{ width:100%; height:100%; }
+  .gallery-viewer-image{ width:100%; max-height:68vh; min-height:320px; object-fit:contain; border-radius:14px; }
   .gallery-nav{ position:absolute; top:50%; transform:translateY(-50%); width:46px; height:46px; border:0; border-radius:50%; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.11); font-size:25px; cursor:pointer; }
   .gallery-prev{ left:14px; }.gallery-next{ right:14px; }
   .gallery-detail h2{ margin:23px 0 5px; font-size:25px; }
@@ -2004,13 +2007,52 @@
     const kind = clipboardMediaFile.type.startsWith('video/') ? 'วิดีโอ' : 'รูปภาพ';
     clipboardFileName.textContent = `✓ วาง${kind}แล้ว: ${clipboardMediaFile.name || 'clipboard-media'}`;
   });
-  const saveContentRecord = status => {
+  const createContentImagePreview = file => new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) { resolve(''); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('อ่านไฟล์ภาพไม่สำเร็จ'));
+    reader.onload = () => {
+      const source = new Image();
+      source.onerror = () => reject(new Error('เปิดไฟล์ภาพไม่สำเร็จ'));
+      source.onload = () => {
+        const maxSide = 1000;
+        const scale = Math.min(1, maxSide / Math.max(source.naturalWidth, source.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(source.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
+        canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height);
+        let preview = canvas.toDataURL('image/jpeg', .78);
+        if (preview.length > 360000) {
+          const smaller = document.createElement('canvas');
+          const shrink = Math.sqrt(320000 / preview.length);
+          smaller.width = Math.max(1, Math.round(canvas.width * shrink));
+          smaller.height = Math.max(1, Math.round(canvas.height * shrink));
+          smaller.getContext('2d').drawImage(canvas, 0, 0, smaller.width, smaller.height);
+          preview = smaller.toDataURL('image/jpeg', .7);
+        }
+        resolve(preview.length <= 450000 ? preview : '');
+      };
+      source.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  const saveContentRecord = async status => {
     const channels = Array.from(contentCreateForm.querySelectorAll('[name="channel"]:checked')).map(input => input.value);
     if (status !== 'ร่าง' && !channels.length) {
       contentFormMessage.hidden = false;
       contentFormMessage.style.background = '#fbe7e8';
       contentFormMessage.style.color = '#a5424a';
       contentFormMessage.textContent = 'กรุณาเลือกอย่างน้อย 1 ช่องทาง';
+      return false;
+    }
+    const selectedMedia = contentMedia.files[0] || clipboardMediaFile;
+    let mediaPreview = '';
+    try { mediaPreview = await createContentImagePreview(selectedMedia); }
+    catch (_) {
+      contentFormMessage.hidden = false;
+      contentFormMessage.style.background = '#fbe7e8';
+      contentFormMessage.style.color = '#a5424a';
+      contentFormMessage.textContent = 'ไม่สามารถสร้างภาพตัวอย่างได้ กรุณาเลือกไฟล์ภาพใหม่';
       return false;
     }
     const record = {
@@ -2021,6 +2063,8 @@
       publishDate:contentCreateForm.querySelector('[name="publishDate"]').value,
       caption:contentCreateForm.querySelector('[name="caption"]').value,
       mediaName:contentMedia.files[0]?.name || clipboardMediaFile?.name || '',
+      mediaType:selectedMedia?.type || '',
+      mediaPreview,
       mediaSource:contentMedia.files[0] ? 'upload' : clipboardMediaFile ? 'clipboard' : '',
       mediaLink:contentCreateForm.querySelector('[name="mediaLink"]').value,
       status
@@ -2028,7 +2072,14 @@
     let records = [];
     try { records = JSON.parse(localStorage.getItem('quackapprove-content')) || []; } catch (_) {}
     records.push(record);
-    try { localStorage.setItem('quackapprove-content', JSON.stringify(records)); } catch (_) {}
+    try { localStorage.setItem('quackapprove-content', JSON.stringify(records)); }
+    catch (_) {
+      contentFormMessage.hidden = false;
+      contentFormMessage.style.background = '#fbe7e8';
+      contentFormMessage.style.color = '#a5424a';
+      contentFormMessage.textContent = 'พื้นที่เก็บข้อมูลไม่เพียงพอ กรุณาใช้ภาพที่มีขนาดเล็กลง';
+      return false;
+    }
     contentFormMessage.hidden = false;
     contentFormMessage.style.background = '#e6f3e8';
     contentFormMessage.style.color = '#317248';
@@ -2039,10 +2090,10 @@
     clipboardFileName.textContent = '';
     return record;
   };
-  contentCreateForm.addEventListener('submit', event => {
+  contentCreateForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (!contentCreateForm.reportValidity()) return;
-    const record = saveContentRecord('รออนุมัติ');
+    const record = await saveContentRecord('รออนุมัติ');
     if (record) {
       addSubmittedContentToGallery(record);
       document.querySelector('[data-nav="gallery"]').click();
@@ -2097,9 +2148,19 @@
     document.getElementById('galleryApprovalNote').value = '';
     const viewer = document.getElementById('galleryViewerCenter');
     viewer.replaceChildren();
+    viewer.classList.remove('has-image');
     const icon = document.createElement('span'); icon.className = 'gallery-media-icon';
     const text = document.createElement('span');
-    if (card.dataset.hasMedia === 'true') { icon.textContent = '🖼'; text.textContent = 'พรีวิวรูปภาพแนบ'; }
+    if (card.dataset.mediaPreview?.startsWith('data:image/')) {
+      const image = document.createElement('img');
+      image.className = 'gallery-viewer-image';
+      image.src = card.dataset.mediaPreview;
+      image.alt = card.dataset.title || 'ภาพแนบ';
+      viewer.classList.add('has-image');
+      viewer.append(image);
+      return;
+    }
+    if (card.dataset.hasMedia === 'true') { icon.textContent = '🖼'; text.textContent = 'ไฟล์เดิมไม่มีข้อมูลภาพ กรุณาแนบภาพใหม่'; }
     else if (card.querySelector('.gallery-card-media')?.textContent.includes('ลิงก์')) { icon.textContent = '🔗'; text.textContent = 'งานนี้แนบมาเป็นลิงก์'; }
     else { icon.textContent = '🖼'; text.textContent = 'ไม่มีรูปภาพสำหรับงานนี้'; }
     viewer.append(icon,text);
@@ -2133,6 +2194,7 @@
     card.dataset.date = record.publishDate || 'ยังไม่กำหนด';
     card.dataset.caption = record.caption;
     card.dataset.recordId = record.id;
+    card.dataset.mediaPreview = typeof record.mediaPreview === 'string' && record.mediaPreview.startsWith('data:image/') ? record.mediaPreview : '';
     const badge = document.createElement('span');
     badge.className = 'gallery-card-badge';
     badge.textContent = '🔔 รออนุมัติ';
@@ -2144,10 +2206,17 @@
     const mediaIcon = document.createElement('span');
     mediaIcon.className = 'gallery-media-icon';
     const mediaText = document.createElement('span');
-    if (record.mediaName) { mediaIcon.textContent = '🖼'; mediaText.textContent = `มีสื่อแนบ: ${record.mediaName}`; }
+    if (card.dataset.mediaPreview) {
+      const image = document.createElement('img');
+      image.className = 'gallery-card-image';
+      image.src = card.dataset.mediaPreview;
+      image.alt = record.title || record.mediaName || 'ภาพแนบ';
+      media.append(image);
+    }
+    else if (record.mediaName) { mediaIcon.textContent = '🖼'; mediaText.textContent = `มีสื่อแนบ: ${record.mediaName}`; }
     else if (record.mediaLink) { mediaIcon.textContent = '🔗'; mediaText.textContent = 'มีลิงก์แนบ'; }
     else { mediaIcon.textContent = '🖼'; mediaText.textContent = 'ไม่มีสื่อแนบ'; }
-    media.append(mediaIcon,mediaText);
+    if (!card.dataset.mediaPreview) media.append(mediaIcon,mediaText);
     const title = document.createElement('div');
     title.className = 'gallery-card-title';
     title.textContent = record.title;
