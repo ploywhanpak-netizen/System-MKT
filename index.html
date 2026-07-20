@@ -1005,6 +1005,33 @@
     .main{ padding: 20px; }
   }
 
+  .mobile-menu-toggle,.mobile-menu-backdrop{ display:none; }
+  @media (max-width:760px){
+    body{ overflow-x:hidden; }
+    body.mobile-nav-open{ overflow:hidden; }
+    .mobile-menu-toggle{ position:fixed; z-index:1702; top:12px; left:12px; display:flex; width:44px; height:44px; align-items:center; justify-content:center; border:1px solid #d4e1df; border-radius:12px; background:#fff; color:#17364a; font-size:22px; box-shadow:0 7px 20px rgba(16,33,56,.16); cursor:pointer; }
+    .mobile-menu-backdrop{ position:fixed; z-index:1698; inset:0; display:block; background:rgba(11,27,45,.52); opacity:0; visibility:hidden; transition:opacity .2s ease,visibility .2s ease; }
+    .sidebar{ position:fixed; z-index:1700; top:0; bottom:0; left:0; display:flex; width:min(86vw,320px); height:100dvh; transform:translateX(-105%); transition:transform .24s ease; box-shadow:18px 0 45px rgba(8,22,38,.3); }
+    body.mobile-nav-open .sidebar{ transform:translateX(0); }
+    body.mobile-nav-open .mobile-menu-backdrop{ opacity:1; visibility:visible; }
+    body.mobile-nav-open .mobile-menu-toggle{ left:min(calc(86vw - 56px),264px); background:#20344b; color:#fff; border-color:#40536a; }
+    .main{ width:100%; min-width:0; padding:0; }
+    [data-page].active{ max-width:100vw; overflow-x:hidden; padding-left:16px!important; padding-right:16px!important; padding-top:70px!important; }
+    .approval-table-card,.database-wrap,.booking-table-wrap,.budget-table-wrap,.event-table-wrap,.influencer-process-wrap,.myjob-table-wrap,.myjob-update-table-wrap,.worklog-table-wrap{ max-width:100%; overflow-x:auto!important; -webkit-overflow-scrolling:touch; }
+    .approval-detail-modal{ padding:0; align-items:stretch; }
+    .approval-detail-shell{ width:100%; max-height:100dvh; border-radius:0; }
+    .approval-modal-head{ padding:15px 60px 15px 18px; }
+    .approval-modal-head h2{ font-size:17px; }
+    .approval-modal-tools{ gap:4px; }
+    .approval-print{ padding:8px 9px; font-size:12px; }
+    .approval-modal-scroll{ max-height:calc(100dvh - 66px); padding:12px; }
+    .approval-document{ padding:22px 16px; }
+    .approval-doc-top{ flex-direction:column; }
+    .approval-stamp{ top:96px; right:22px; width:112px; height:58px; font-size:17px; }
+    .approval-line-table{ display:block; overflow-x:auto; }
+    .approval-line-table th,.approval-line-table td{ min-width:105px; }
+  }
+
   [data-page]{ display:none; }
   [data-page].active{ display:block; }
 </style>
@@ -1419,6 +1446,16 @@
   const statusTrackingMount = document.getElementById('statusTrackingMount');
   const statusTrackingTable = document.querySelector('[data-page="home"] > .table-section');
   if (statusTrackingMount && statusTrackingTable) statusTrackingMount.appendChild(statusTrackingTable);
+  const mobileMenuButton=document.createElement('button');
+  mobileMenuButton.className='mobile-menu-toggle';mobileMenuButton.type='button';mobileMenuButton.textContent='☰';mobileMenuButton.setAttribute('aria-label','เปิดเมนู');mobileMenuButton.setAttribute('aria-expanded','false');
+  const mobileMenuBackdrop=document.createElement('div');mobileMenuBackdrop.className='mobile-menu-backdrop';
+  document.body.append(mobileMenuBackdrop,mobileMenuButton);
+  const setMobileMenu=open=>{document.body.classList.toggle('mobile-nav-open',open);mobileMenuButton.textContent=open?'×':'☰';mobileMenuButton.setAttribute('aria-label',open?'ปิดเมนู':'เปิดเมนู');mobileMenuButton.setAttribute('aria-expanded',String(open));};
+  mobileMenuButton.addEventListener('click',()=>setMobileMenu(!document.body.classList.contains('mobile-nav-open')));
+  mobileMenuBackdrop.addEventListener('click',()=>setMobileMenu(false));
+  document.querySelector('.sidebar')?.addEventListener('click',event=>{if(event.target.closest('.nav-item,#changeRole'))setMobileMenu(false);});
+  window.addEventListener('keydown',event=>{if(event.key==='Escape')setMobileMenu(false);});
+  window.matchMedia('(min-width:761px)').addEventListener?.('change',event=>{if(event.matches)setMobileMenu(false);});
   const trackingDetailModal = document.getElementById('trackingDetailModal');
   const closeTrackingDetail = () => { trackingDetailModal.hidden = true; };
   const trackingList=document.getElementById('trackingList');
