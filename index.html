@@ -514,6 +514,7 @@
   .approval-table td{ padding:19px 20px; border-bottom:1px solid #edf1f5; color:#34445b; }
   .approval-table tr[data-state="pending"] td:first-child{ border-left:5px solid #eeb600; }
   .approval-table tr[data-state="approved"] td:first-child{ border-left:5px solid #2a9b75; }
+  .approval-table tr[data-state="cancelled"] td:first-child{ border-left:5px solid #e06469; }
   .approval-pr,.approval-title{ color:#14243a; font-weight:800; }
   .approval-title-sub{ max-width:310px; margin-top:4px; overflow:hidden; color:#8391a5; font-size:12px; white-space:nowrap; text-overflow:ellipsis; }
   .approval-amount{ color:#17685f; font-weight:800; white-space:nowrap; }
@@ -526,7 +527,8 @@
   .approval-icon-button.edit{ background:#fff4df; color:#cf7513; }.approval-icon-button.reject{ background:#fff0f0; color:#d84b50; }.approval-icon-button.delete{ background:#f3f5f8; color:#8b9aae; }
   .boss-approver-mode [data-page="approval-list"] .approval-table th:last-child,
   .boss-approver-mode [data-page="approval-list"] .approval-table td:last-child{ display:none; }
-  .boss-approver-mode [data-page="approval-list"] .approval-head-actions,
+  .boss-approver-mode [data-page="approval-list"] .approval-head-actions{ display:flex; }
+  .boss-approver-mode [data-page="approval-list"] .approval-head-actions > :not(.approval-tab),
   .boss-approver-mode [data-page="approval-list"] .approval-admin-card{ display:none; }
   .boss-approver-mode [data-page="approval-list"] .approval-table-card{ margin-top:28px; }
   .boss-approver-mode [data-page="approval-list"] .approval-table{ min-width:900px; }
@@ -567,6 +569,21 @@
   .database-manage-toggle.active{ border-color:#238d83!important; background:#e8f5f2!important; color:#176a60!important; }
   .database-manage-note{ display:none; color:#b16f11!important; }
   .database-page.database-manage-mode .database-manage-note{ display:inline!important; }
+  .requester-mode [data-page="database"] .database-actions button,
+  .requester-mode [data-page="database"] .database-actions label,
+  .requester-mode [data-page="database"] .database-manage-note,
+  .requester-mode [data-page="approval-list"] .approval-table th:last-child,
+  .requester-mode [data-page="approval-list"] .approval-table td:last-child,
+  .requester-mode [data-page="gallery"] .gallery-detail-actions,
+  .requester-mode [data-page="influencer-booking"] .booking-row-actions,
+  .requester-mode [data-page="influencer-booking"] [data-booking-reviewed],
+  .requester-mode [data-tracking-edit],
+  .requester-mode [data-tracking-delete],
+  .requester-mode [data-work-action="date"],
+  .requester-mode [data-work-action="undo"],
+  .requester-mode [data-work-action="delete"]{ display:none!important; }
+  .requester-mode [data-page="database"] .database-actions > span:last-child{ display:inline-flex; }
+  .requester-mode .booking-inline:disabled,.requester-mode .work-edit-money:disabled,.requester-mode .influencer-process-date:disabled{ border-color:transparent; background:transparent; color:inherit; opacity:1; cursor:default; }
   [data-page="my-job"],[data-page="my-job-archive"]{ min-height:100vh; padding:42px 46px; background:#f4f7fa; color:#17243a; }
   .myjob-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
   .myjob-head h1{ margin:0; font-size:31px; }.myjob-head p{ margin:7px 0 0; color:#71829a; }
@@ -717,6 +734,7 @@
   .event-page-card{ padding:28px; border-radius:22px; background:#fff; border:1px solid var(--line); box-shadow:0 10px 24px rgba(21,65,56,.07); }
   .event-summary-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:20px 0}.event-summary-filters{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.event-filter-field{display:flex;flex-direction:column;gap:6px;color:#62827b;font-size:12px;font-weight:700}.event-filter-field select,.event-filter-field input{height:42px;min-width:150px;padding:8px 12px;border:1px solid #cfe1dc;border-radius:11px;background:#f7fbfa;color:#285f56;font:inherit}.event-filter-field select:focus,.event-filter-field input:focus{outline:0;border-color:#20a598;box-shadow:0 0 0 3px rgba(32,165,152,.14)}.event-summary-cards{display:grid;grid-template-columns:repeat(2,minmax(190px,1fr));gap:12px}.event-summary-card{min-width:190px;padding:15px 18px;border:1px solid #d5e7e2;border-radius:14px;background:linear-gradient(135deg,#f5fbf9,#e8f5f2)}.event-summary-card small{display:block;margin-bottom:5px;color:#648c83;font-weight:700}.event-summary-card strong{display:block;color:#17695f;font-size:23px}.event-filter-value[hidden]{display:none}
   .event-data-actions{display:flex;gap:8px;align-items:center}.event-data-action{height:42px;padding:0 14px;border:1px solid #cfe1dc;border-radius:11px;background:#fff;color:#286b60;font:inherit;font-weight:800;cursor:pointer}.event-data-action:hover{border-color:#78aea4;background:#eef8f5}.event-data-action.export{background:#e8f5f2}.event-import-input{display:none}
+  .event-comparison-card{margin:8px 0 24px;padding:22px 24px 18px;border:1px solid #d8e4e1;border-radius:16px;background:#fff}.event-comparison-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.event-comparison-head h3{margin:0;color:#273c38;font-size:17px}.event-comparison-legend{display:inline-flex;align-items:center;gap:8px;color:#596a67;font-size:12px}.event-comparison-legend::before{content:'';width:28px;height:13px;border-radius:2px;background:#ff8a00}.event-comparison-chart{display:flex;align-items:flex-end;gap:34px;min-height:260px;overflow-x:auto;padding:18px 18px 8px;background:repeating-linear-gradient(to top,transparent 0,transparent 49px,#dfe5e3 50px);border-bottom:1px solid #9eaaa7}.event-comparison-item{display:flex;flex:1 0 130px;height:230px;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}.event-comparison-value{color:#b85e00;font-size:12px;font-weight:900;white-space:nowrap}.event-comparison-bar{width:min(130px,82%);min-height:4px;border-radius:3px 3px 0 0;background:#ff8a00;box-shadow:inset 0 -8px 16px rgba(194,86,0,.08);transition:height .25s ease}.event-comparison-name{max-width:145px;overflow:hidden;color:#394b47;font-size:12px;text-align:center;text-overflow:ellipsis;white-space:nowrap}.event-comparison-empty{margin:auto;align-self:center;color:#849590;font-size:13px}
   .event-table-wrap{ overflow-x:auto; border:1px solid #dce9e5; border-radius:14px; }
   .event-data-table{ min-width:1120px; }
   .event-data-table th{ background:#f4f8f6; white-space:nowrap; }
@@ -1295,6 +1313,7 @@
             <div class="event-summary-card"><small>💰 ยอดขายรวม</small><strong id="eventSummarySales">฿0.00</strong></div>
           </div>
         </div>
+        <div class="event-comparison-card"><div class="event-comparison-head"><h3>📊 กราฟยอดขายแต่ละ Event</h3><span class="event-comparison-legend">ยอดขายรวม</span></div><div class="event-comparison-chart" id="eventComparisonChart"><div class="event-comparison-empty">กราฟจะแสดงเมื่อมียอดขาย Event</div></div></div>
         <div class="event-table-wrap"><table class="event-data-table">
           <thead><tr><th>ชื่องาน</th><th>โลเคชัน</th><th>วันที่เริ่ม</th><th>วันที่สิ้นสุด</th><th>อีกกี่วันจะถึง</th><th>ระยะเวลาจัดงาน</th><th>ยอดรวม</th><th>เฉลี่ยต่อวัน</th></tr></thead>
           <tbody id="eventTableBody"></tbody>
@@ -1308,7 +1327,7 @@
       <div class="settings-card"><h2>ประเภทค่าใช้จ่าย</h2><p>ผู้อนุมัติสามารถเพิ่มหรือลบประเภทค่าใช้จ่ายได้ รายการจะอัปเดตในแบบฟอร์มทันที</p><form class="settings-add-row" id="expenseTypeForm"><input id="expenseTypeInput" required placeholder="เพิ่มประเภทค่าใช้จ่ายใหม่"><button type="submit">＋ เพิ่มรายการ</button></form><div class="settings-option-list" id="expenseTypeList"></div></div>
     </section>
     <section data-page="approval-list">
-      <div class="approval-page-head"><div><h1>การขออนุมัติ</h1><p>ติดตามสถานะและเปิดดูรายละเอียดใบคำขออนุมัติตามแบบฟอร์ม</p></div><div class="approval-head-actions"><button class="approval-head-button create" id="createApprovalRequest">＋ สร้างคำขออนุมัติ</button><button class="approval-head-button active approval-tab" data-approval-filter="pending">รอดำเนินการ (1)</button><button class="approval-head-button approval-tab" data-approval-filter="approved">อนุมัติแล้ว (1)</button><button class="approval-head-button" id="approvalSettings">⚙</button></div></div>
+      <div class="approval-page-head"><div><h1>การขออนุมัติ</h1><p>ติดตามสถานะและเปิดดูรายละเอียดใบคำขออนุมัติตามแบบฟอร์ม</p></div><div class="approval-head-actions"><button class="approval-head-button create" id="createApprovalRequest">＋ สร้างคำขออนุมัติ</button><button class="approval-head-button active approval-tab" data-approval-filter="pending">รออนุมัติ (1)</button><button class="approval-head-button approval-tab" data-approval-filter="approved">อนุมัติแล้ว (0)</button><button class="approval-head-button approval-tab" data-approval-filter="cancelled">ยกเลิก (0)</button><button class="approval-head-button" id="approvalSettings">⚙</button></div></div>
       <div class="approval-admin-card"><div class="approval-admin-left"><div class="approval-admin-icon">♙</div><div><div class="approval-admin-title">ผู้ดูแลระบบ (Admin)</div><div class="approval-admin-sub">จัดการ พิจารณา และแก้ไขได้ทุกใบคำขอ</div></div></div><div class="approval-admin-count">รอดำเนินการ 1 · อนุมัติแล้ว 1</div></div>
       <div class="approval-table-card"><table class="approval-table"><thead><tr><th>PR</th><th>Supplier</th><th>Title</th><th>Amount</th><th>วันที่ส่ง</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="approvalRequestBody">
         <tr data-state="pending" data-pr="PR-1018" data-supplier="Play Along Studio" data-title="New Menu for 41" data-amount="100,000.00" data-date="10 ก.ค. 2026 18:48"><td class="approval-pr">PR-1018</td><td>Play Along Studio</td><td><div class="approval-title">New Menu for 41</div><div class="approval-title-sub">ถ่ายภาพและจัดทำเล่มเมนูใหม่สำหรับสาขา 41</div></td><td class="approval-amount">฿ 100,000.00</td><td>10 ก.ค. 2026 18:48</td><td><span class="approval-state">● รออนุมัติ</span></td><td><div class="approval-actions"><button class="approval-icon-button approval-view" title="ดูรายละเอียด" aria-label="ดูรายละเอียด">👁</button><button class="approval-icon-button edit" title="แก้ไข">✎</button><button class="approval-icon-button reject" title="ปฏิเสธ">×</button><button class="approval-icon-button delete" title="ลบรายการ" aria-label="ลบรายการ">🗑</button></div></td></tr>
@@ -1443,6 +1462,7 @@
   const applyRolePermissions = () => {
     const bossApproverMode = !requesterMode && !adminMode;
     document.body.classList.toggle('boss-approver-mode',bossApproverMode);
+    document.body.classList.toggle('requester-mode',requesterMode);
     document.querySelectorAll('.nav-item').forEach(item=>{
       item.toggleAttribute('data-boss-hidden',bossApproverMode&&!bossVisiblePages.has(item.dataset.nav));
     });
@@ -1452,6 +1472,14 @@
     });
     document.querySelectorAll('.nav-group-label').forEach(label=>label.hidden=false);
     document.querySelectorAll('[data-role-locked]').forEach(element=>{element.disabled=false;element.removeAttribute('data-role-locked');element.removeAttribute('title');});
+    if(requesterMode){
+      document.querySelectorAll('[data-page="database"] button,[data-page="database"] input[type="checkbox"],.booking-inline,.work-edit-money,.influencer-process-date,[data-process-done],[data-booking-reviewed]').forEach(element=>{
+        element.setAttribute('data-role-locked','');
+        element.setAttribute('title','ผู้ขออนุมัติเปิดดูข้อมูลได้เท่านั้น');
+        if('disabled' in element)element.disabled=true;
+      });
+      return;
+    }
     if(!bossApproverMode)return;
     document.querySelectorAll('[data-page]').forEach(page=>{
       if(bossEditablePages.has(page.dataset.page))return;
@@ -1494,7 +1522,7 @@
   document.getElementById('changeRole').addEventListener('click', showEntryGateway);
   document.getElementById('topChangeRole').addEventListener('click', showEntryGateway);
   const rolePermissionObserver = new MutationObserver(()=>{
-    if(requesterMode||adminMode)return;
+    if(adminMode)return;
     window.clearTimeout(rolePermissionObserver.timer);
     rolePermissionObserver.timer=window.setTimeout(applyRolePermissions,0);
   });
@@ -1639,6 +1667,7 @@
     };
   };
   const getEventSummaryRange=()=>{const period=eventSummaryPeriod.value;if(period==='day'&&eventDayFilter.value)return{start:eventDayFilter.value,end:eventDayFilter.value};if(period==='month'&&eventMonthFilter.value){const [year,month]=eventMonthFilter.value.split('-').map(Number),lastDay=new Date(year,month,0).getDate();return{start:`${year}-${String(month).padStart(2,'0')}-01`,end:`${year}-${String(month).padStart(2,'0')}-${lastDay}`};}if(period==='year'&&eventYearFilter.value)return{start:`${eventYearFilter.value}-01-01`,end:`${eventYearFilter.value}-12-31`};return null};
+  const eventChartEscape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const recordMatchesEventRange=(record,range)=>!range||(record.start<=range.end&&record.end>=range.start);
   const getHomeEvents=()=>{const now=new Date(),today=new Date(now-now.getTimezoneOffset()*60000).toISOString().slice(0,10),visible=eventRecords.filter(record=>record.end>=today).sort((a,b)=>a.start.localeCompare(b.start)||a.end.localeCompare(b.end));return{ongoing:visible.filter(record=>record.start<=today),upcoming:visible.filter(record=>record.start>today)}};
   const renderHomeEventCards=(records,mount,thaiDate)=>{mount.replaceChildren();records.forEach(record=>{const metrics=getEventMetrics(record),box=document.createElement('button');box.type='button';box.className='event-box home-event-box';box.dataset.homeEventId=record.id;const title=document.createElement('div');title.className='event-box-title';const name=document.createElement('span');name.textContent=`🎪 ${record.name}`;const status=document.createElement('span');status.className='pill';status.textContent=metrics.countdown;title.append(name,status);const location=document.createElement('div');location.className='event-meta';location.textContent=`📍 ${record.location}`;const meta=document.createElement('div');meta.className='event-meta';const dates=document.createElement('span');dates.textContent=`📅 ${thaiDate.format(metrics.start)} – ${thaiDate.format(metrics.end)}`;const duration=document.createElement('span');duration.textContent=`${metrics.duration} วัน`;meta.append(dates,duration);box.append(title,location,meta);mount.append(box)})};
@@ -1653,6 +1682,8 @@
     const summarySales=filteredRecords.reduce((total,record)=>{const dailySales=record.dailySales&&typeof record.dailySales==='object'?record.dailySales:record.sales?{[record.start]:record.sales}:{};return total+Object.entries(dailySales).filter(([date])=>!selectedRange||(date>=selectedRange.start&&date<=selectedRange.end)).reduce((sum,[,value])=>sum+(Number(value)||0),0)},0);
     eventSummaryPlaces.textContent=`${locations.size} ที่`;
     eventSummarySales.textContent=`฿${summarySales.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const comparisonData=filteredRecords.map(record=>{const dailySales=record.dailySales&&typeof record.dailySales==='object'?record.dailySales:record.sales?{[record.start]:record.sales}:{};const total=Object.entries(dailySales).filter(([date])=>!selectedRange||(date>=selectedRange.start&&date<=selectedRange.end)).reduce((sum,[,value])=>sum+(Number(value)||0),0);return{record,total}}),comparisonMax=Math.max(0,...comparisonData.map(item=>item.total)),comparisonChart=document.getElementById('eventComparisonChart');
+    comparisonChart.innerHTML=comparisonData.length?comparisonData.map(({record,total})=>{const height=comparisonMax?Math.max(4,Math.round(total/comparisonMax*180)):4;return `<div class="event-comparison-item" title="${eventChartEscape(record.name)}: ฿${total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}"><div class="event-comparison-value">฿${total.toLocaleString('th-TH',{maximumFractionDigits:0})}</div><div class="event-comparison-bar" style="height:${height}px"></div><div class="event-comparison-name">${eventChartEscape(record.name)}</div></div>`}).join(''):'<div class="event-comparison-empty">ไม่พบ Event ในช่วงเวลาที่เลือก</div>';
     filteredRecords.forEach(record => {
       const metrics = getEventMetrics(record);
       const row = body.insertRow();
@@ -2428,7 +2459,13 @@
     approvalPendingBadge.textContent = total;
     approvalPendingBadge.hidden = total === 0;
     const pendingTab = document.querySelector('.approval-tab[data-approval-filter="pending"]');
-    if (pendingTab) pendingTab.textContent = `รอดำเนินการ (${total})`;
+    if (pendingTab) pendingTab.textContent = `รออนุมัติ (${total})`;
+    const approvedTotal = Array.from(approvalRequestBody?.rows || []).filter(row => row.dataset.state === 'approved').length;
+    const cancelledTotal = Array.from(approvalRequestBody?.rows || []).filter(row => row.dataset.state === 'cancelled').length;
+    const approvedTab = document.querySelector('.approval-tab[data-approval-filter="approved"]');
+    const cancelledTab = document.querySelector('.approval-tab[data-approval-filter="cancelled"]');
+    if (approvedTab && !approvedTab.textContent.includes('ฐานข้อมูล')) approvedTab.textContent = `อนุมัติแล้ว (${approvedTotal})`;
+    if (cancelledTab) cancelledTab.textContent = `ยกเลิก (${cancelledTotal})`;
     if (animate && total > 0 && total !== previousApprovalPendingTotal) {
       approvalPendingBadge.classList.remove('bump');
       void approvalPendingBadge.offsetWidth;
@@ -2486,7 +2523,7 @@
   document.querySelector('.approval-accept').addEventListener('click', () => { if (!activeApprovalRow) return; activeApprovalRow.dataset.state='approved'; activeApprovalRow.querySelector('.approval-state').className='approval-state approved'; activeApprovalRow.querySelector('.approval-state').textContent='● อนุมัติแล้ว'; approvalDetailModal.hidden=true; });
   const cancelApprovalRow=row=>{if(!row)return;row.dataset.state='cancelled';const badge=row.querySelector('.approval-state');if(badge){badge.className='approval-state';badge.textContent='● ยกเลิก / ตีกลับ';}row.hidden=false;};
   document.querySelector('.approval-decline').addEventListener('click', () => { cancelApprovalRow(activeApprovalRow); approvalDetailModal.hidden=true; });
-  document.querySelectorAll('.approval-tab').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.approval-tab').forEach(item=>item.classList.remove('active')); button.classList.add('active'); document.querySelectorAll('#approvalRequestBody tr').forEach(row=>row.hidden=button.dataset.approvalFilter==='pending'?!['pending','cancelled'].includes(row.dataset.state):row.dataset.state!==button.dataset.approvalFilter); }));
+  document.querySelectorAll('.approval-tab').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.approval-tab').forEach(item=>item.classList.remove('active')); button.classList.add('active'); document.querySelectorAll('#approvalRequestBody tr').forEach(row=>row.hidden=row.dataset.state!==button.dataset.approvalFilter); }));
   document.querySelectorAll('.approval-icon-button.delete').forEach(button => button.addEventListener('click', () => { if(confirm('ลบรายการนี้ใช่หรือไม่?')) button.closest('tr').remove(); }));
   document.querySelectorAll('.approval-icon-button.reject').forEach(button => button.addEventListener('click', () => { if(confirm('ยกเลิกหรือตีกลับคำขอนี้ใช่หรือไม่?')) cancelApprovalRow(button.closest('tr')); }));
   document.querySelectorAll('.approval-icon-button.edit').forEach(button => button.addEventListener('click', () => { const row=button.closest('tr'); const value=prompt('แก้ไขชื่อรายการ',row.dataset.title); if(value){row.dataset.title=value;row.querySelector('.approval-title').textContent=value;} }));
@@ -2613,11 +2650,8 @@
   const saveBookingRows=()=>localStorage.setItem(bookingStorageKey,JSON.stringify(bookingRows));
   const isInfluencerApproval=row=>(row?.dataset.expense||'').trim().toLowerCase().startsWith('influencer');
   document.querySelector('.approval-accept').addEventListener('click',()=>{if(!activeApprovalRow||activeApprovalRow.dataset.bookingCreated==='true'||!isInfluencerApproval(activeApprovalRow))return;const expense=(activeApprovalRow.dataset.expense||'').toLowerCase();const type=expense.includes('barter')?'Barter':expense.includes('ads')?'Ads':'Ratecard';const name=activeApprovalRow.dataset.bookingName||activeApprovalRow.dataset.supplier||activeApprovalRow.dataset.title;bookingRows.unshift({channel:name,name,branch:activeApprovalRow.dataset.venue||'ยังไม่กำหนดสาขา',date:'',time:'',type,amount:Number((activeApprovalRow.dataset.amount||'0').replaceAll(',',''))||0,sourcePr:activeApprovalRow.dataset.pr,sourceExpense:activeApprovalRow.dataset.expense||'',sourceDetail:activeApprovalRow.dataset.detail||''});activeApprovalRow.dataset.bookingCreated='true';renderBookings();});
-  document.querySelector('.approval-accept').addEventListener('click',()=>{if(!activeApprovalRow||activeApprovalRow.dataset.databaseCreated==='true')return;const source=activeApprovalRow;const databaseBody=approvedTable.tBodies[0];const row=databaseBody.insertRow(0);row.dataset.search=`${source.dataset.pr} ${source.dataset.supplier} ${source.dataset.title}`.toLowerCase();Object.entries(source.dataset).forEach(([key,value])=>row.dataset[key]=value);row.innerHTML=`<td><input class="database-check" type="checkbox" aria-label="เลือกรายการ"></td><td class="approval-pr">${source.dataset.pr}</td><td>${source.dataset.supplier}</td><td>${source.dataset.title}</td><td>${source.dataset.date}</td><td class="approval-amount">฿ ${source.dataset.amount}</td><td><span class="database-approved">● อนุมัติแล้ว</span></td><td>${source.dataset.approver||'สมชาย ใจดี'}</td>`;source.dataset.databaseCreated='true';saveApprovedDatabase();source.remove();activeApprovalRow=null;const databaseTab=document.querySelector('.approval-tab[data-approval-filter="approved"]');if(databaseTab)databaseTab.textContent='อนุมัติแล้ว → ฐานข้อมูล';});
+  document.querySelector('.approval-accept').addEventListener('click',()=>{if(!activeApprovalRow||activeApprovalRow.dataset.databaseCreated==='true')return;const source=activeApprovalRow;const databaseBody=approvedTable.tBodies[0];const row=databaseBody.insertRow(0);row.dataset.search=`${source.dataset.pr} ${source.dataset.supplier} ${source.dataset.title}`.toLowerCase();Object.entries(source.dataset).forEach(([key,value])=>row.dataset[key]=value);row.innerHTML=`<td><input class="database-check" type="checkbox" aria-label="เลือกรายการ"></td><td class="approval-pr">${source.dataset.pr}</td><td>${source.dataset.supplier}</td><td>${source.dataset.title}</td><td>${source.dataset.date}</td><td class="approval-amount">฿ ${source.dataset.amount}</td><td><span class="database-approved">● อนุมัติแล้ว</span></td><td>${source.dataset.approver||'สมชาย ใจดี'}</td>`;source.dataset.databaseCreated='true';saveApprovedDatabase();saveApprovalRequests();updateApprovalPendingBadge();activeApprovalRow=null;document.querySelector('.approval-tab[data-approval-filter="approved"]')?.click();});
   approvedTable?.addEventListener('click',event=>{const row=event.target.closest('tbody tr');if(row&&!event.target.matches('input'))openApprovalDetail(row);});
-  document.querySelectorAll('#approvalRequestBody tr[data-state="approved"]').forEach(row=>row.remove());
-  const approvedApprovalTab=document.querySelector('.approval-tab[data-approval-filter="approved"]');
-  if(approvedApprovalTab){approvedApprovalTab.textContent='อนุมัติแล้ว → ฐานข้อมูล';approvedApprovalTab.addEventListener('click',()=>document.querySelector('[data-nav="database"]').click());}
   const bookingBody=document.getElementById('bookingTableBody');
   const bookingMonth=document.getElementById('bookingMonth'), bookingYear=document.getElementById('bookingYear');
   function bookingFiltered(){ const start=document.getElementById('bookingStart').value,end=document.getElementById('bookingEnd').value; return bookingRows.filter(row=>{ if(!row.date)return true;const d=new Date(row.date+'T00:00:00'); if(start&&row.date<start)return false;if(end&&row.date>end)return false;if(bookingMode==='month')return d.getFullYear()===Number(bookingYear.value)&&d.getMonth()===Number(bookingMonth.value);if(bookingMode==='year')return d.getFullYear()===Number(bookingYear.value);return true; }); }
