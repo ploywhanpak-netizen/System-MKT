@@ -3205,7 +3205,7 @@
   const notifySharedChange=()=>{if(applyingSharedState)return;clearTimeout(sharedChangeTimer);sharedChangeTimer=setTimeout(()=>window.dispatchEvent(new CustomEvent('quackapprove-shared-change',{detail:readSharedState()})),450)};
   Storage.prototype.setItem=function(key,value){nativeSetItem.call(this,key,value);if(this===localStorage&&sharedKeySet.has(String(key)))notifySharedChange()};
   Storage.prototype.removeItem=function(key){nativeRemoveItem.call(this,key);if(this===localStorage&&sharedKeySet.has(String(key)))notifySharedChange()};
-  window.teamDataBridge={read:readSharedState,apply:state=>{if(!state||typeof state!=='object'||Array.isArray(state))return false;let changed=false;applyingSharedState=true;Object.entries(state).forEach(([key,value])=>{if(!sharedKeySet.has(key)||typeof value!=='string')return;if(localStorage.getItem(key)!==value){nativeSetItem.call(localStorage,key,value);changed=true;}});applyingSharedState=false;return changed;}};
+  window.teamDataBridge={read:readSharedState,apply:state=>{if(!state||typeof state!=='object'||Array.isArray(state))return false;let changed=false;applyingSharedState=true;Object.entries(state).forEach(([key,value])=>{if(!sharedKeySet.has(key)||typeof value!=='string')return;if(localStorage.getItem(key)===null){nativeSetItem.call(localStorage,key,value);changed=true;}});applyingSharedState=false;return changed;}};
 })();
 </script>
 <script type="module">
