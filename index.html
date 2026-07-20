@@ -1318,6 +1318,18 @@
 
   </main>
 
+<script>
+  // One-time cleanup requested on 2026-07-20: remove legacy/demo data only.
+  (()=>{
+    const resetVersion='quackapprove-data-reset-2026-07-20-v2';
+    if(!localStorage.getItem(resetVersion)){
+      localStorage.clear();
+      localStorage.setItem(resetVersion,'done');
+    }
+    document.querySelectorAll('.tracking-item,.idea-card,.gallery-card,#approvalRequestBody tr[data-pr]').forEach(item=>item.remove());
+    document.querySelectorAll('.idea-count').forEach(item=>item.textContent='0');
+  })();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
   const statusTrackingMount = document.getElementById('statusTrackingMount');
@@ -1497,6 +1509,7 @@
     end:'2026-07-25',
     sales:''
   }];
+  defaultEventRecords.length=0;
   let eventRecords;
   try {
     eventRecords = JSON.parse(localStorage.getItem('quackapprove-events')) || defaultEventRecords;
@@ -1791,6 +1804,7 @@
     { id:'calendar-review', title:'รีวิวสินค้าใหม่ประจำเดือน', meta:'Instagram', date:'2026-07-20', status:'approved' },
     { id:'calendar-launch', title:'ประกาศเปิดตัวคอลเลกชันฤดูร้อน', meta:'Facebook', date:'2026-07-24', status:'' }
   ];
+  calendarDefaults.length=0;
   let calendarTasks;
   try {
     calendarTasks = JSON.parse(localStorage.getItem('quackapprove-calendar')) || calendarDefaults;
@@ -2200,6 +2214,7 @@
     ['MK2026-010','Bloom','ส่งเสริมการขาย','บ. เมโลร่า ครีเอชั่น จำกัด','ตุ๊กตาเพรทเซล ขนาด 15 ซม.','-','ตุ๊กตาขนาด 15 cm จำนวน 300 ชิ้น ราคาชิ้นละ 168 บาท','June 2026','Jun-2026','300','168.00','50,400.00','เซ็นแล้ว'],
     ['MK2026-011','Bloom','Ads','Tiktok Ads-moddwarang','ยิงแอด Video moddwarang','Tiktok Bloom','ยิงแอด Video moddwarang รีวิวร้าน 41\nลง Post 13 June 2026\nGen Code 30 วัน','17 June 2026 - 08 July 2026','Jun-2026','1','3,000.00','3,000.00','เซ็นแล้ว']
   ];
+  approvedRows.length=0;
   const approvedTable = document.getElementById('approvedDatabaseTable');
   if (approvedTable) {
     const head = approvedTable.createTHead().insertRow();
@@ -2409,6 +2424,7 @@
     {channel:'daily food diary',name:'คุณเมย์',branch:'Bloom 41',date:'2026-07-20',time:'15:00',type:'Ratecard',amount:9000},
     {channel:'กินกับบี',name:'บี',branch:'CTW',date:'2026-07-25',time:'12:30',type:'Ratecard',amount:6000}
   ];
+  bookingRows=[];
   document.querySelector('.approval-accept').addEventListener('click',()=>{if(!activeApprovalRow||activeApprovalRow.dataset.bookingCreated==='true')return;const expense=(activeApprovalRow.dataset.expense||'').toLowerCase();if(!expense.includes('influencer'))return;const type=expense.includes('barter')?'Barter':expense.includes('ads')?'Ads':'Ratecard';const name=activeApprovalRow.dataset.bookingName||activeApprovalRow.dataset.supplier||activeApprovalRow.dataset.title;bookingRows.unshift({channel:name,name,branch:activeApprovalRow.dataset.venue||'ยังไม่กำหนดสาขา',date:'',time:'',type,amount:Number((activeApprovalRow.dataset.amount||'0').replaceAll(',',''))||0,sourcePr:activeApprovalRow.dataset.pr});activeApprovalRow.dataset.bookingCreated='true';renderBookings();});
   document.querySelector('.approval-accept').addEventListener('click',()=>{if(!activeApprovalRow||activeApprovalRow.dataset.databaseCreated==='true')return;const source=activeApprovalRow;const databaseBody=approvedTable.tBodies[0];const row=databaseBody.insertRow(0);row.dataset.search=`${source.dataset.pr} ${source.dataset.supplier} ${source.dataset.title}`.toLowerCase();row.dataset.pr=source.dataset.pr;row.dataset.supplier=source.dataset.supplier;row.dataset.title=source.dataset.title;row.dataset.amount=source.dataset.amount;row.dataset.date=source.dataset.date;row.innerHTML=`<td><input class="database-check" type="checkbox" aria-label="เลือกรายการ"></td><td class="approval-pr">${source.dataset.pr}</td><td>${source.dataset.supplier}</td><td>${source.dataset.title}</td><td>${source.dataset.date}</td><td class="approval-amount">฿ ${source.dataset.amount}</td><td><span class="database-approved">● อนุมัติแล้ว</span></td><td>สมชาย ใจดี</td>`;row.addEventListener('click',event=>{if(!event.target.matches('input'))openApprovalDetail(row);});source.dataset.databaseCreated='true';source.remove();activeApprovalRow=null;const databaseTab=document.querySelector('.approval-tab[data-approval-filter="approved"]');if(databaseTab)databaseTab.textContent='อนุมัติแล้ว → ฐานข้อมูล';});
   document.querySelectorAll('#approvalRequestBody tr[data-state="approved"]').forEach(row=>row.remove());
@@ -2619,6 +2635,7 @@
     {expense:'อุปกรณ์สิ้นเปลือง',company:'Office Mart',branch:'Bloom 65',amount:100,status:'approved',date:'2026-06-21'},
     ...Array.from({length:5},(_,i)=>({expense:'Influencer - Barter',company:`Barter Creator ${i+1}`,branch:'Pancake Cafe',amount:0,status:'approved',date:`2026-07-${String(i+1).padStart(2,'0')}`}))
   ];
+  spendingRecords.length=0;
   spendingRecords.forEach((row,index)=>{row.pr=row.pr||`PR-${String(1001+index).padStart(4,'0')}`;row.detail=row.detail||(row.expense.includes('Influencer')?`งานรีวิวคอนเทนต์โดย ${row.company} สำหรับ ${row.branch}`:row.expense==='ค่าโฆษณา'?`ค่าโฆษณาแคมเปญประจำเดือนของ ${row.branch}`:row.expense==='อุปกรณ์สิ้นเปลือง'?`จัดซื้ออุปกรณ์ใช้งานสำหรับ ${row.branch}`:`งานส่งเสริมการขายและของพรีเมียมสำหรับ ${row.branch}`);});
   const spendLabel={expense:'ประเภทค่าใช้จ่าย',company:'Company',branch:'สาขา'};
   function getSpendingFiltered(){ const status=document.getElementById('spendStatus')?.value||'all',from=document.getElementById('spendFrom')?.value,to=document.getElementById('spendTo')?.value; return spendingRecords.filter(row=>(status==='all'||row.status===status)&&(!from||row.date>=from)&&(!to||row.date<=to)); }
@@ -2643,6 +2660,8 @@
     'Event Bloom':[0,373825,0,308735,718131,0,0,0,0,0,0,0],
     'Pancake Cafe':[2343993,2269833,2215240,1946802,2176119,0,0,0,0,0,0,0]
   };
+  Object.keys(budgetTargets).forEach(branch=>budgetTargets[branch]=0);
+  Object.keys(budgetMonthly).forEach(branch=>budgetMonthly[branch]=budgetMonthly[branch].map(()=>0));
   let budgetMonthNames=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   try{const savedTargets=JSON.parse(localStorage.getItem('quackapprove-budget-targets'));if(savedTargets)Object.assign(budgetTargets,savedTargets);const savedMonthly=JSON.parse(localStorage.getItem('quackapprove-budget-monthly'));if(savedMonthly)Object.keys(budgetMonthly).forEach(branch=>{if(Array.isArray(savedMonthly[branch]))budgetMonthly[branch]=savedMonthly[branch];});const savedMonthNames=JSON.parse(localStorage.getItem('quackapprove-budget-month-names'));if(Array.isArray(savedMonthNames)&&savedMonthNames.length)budgetMonthNames=savedMonthNames;}catch(error){}
   Object.keys(budgetMonthly).forEach(branch=>{while(budgetMonthly[branch].length<budgetMonthNames.length)budgetMonthly[branch].push(0);});
@@ -2654,6 +2673,8 @@
     {name:'อุปกรณ์สิ้นเปลือง',amount:189,items:[['PR-1032','Office','อุปกรณ์สำนักงาน',189]]},
     {name:'Influencer - Barter',amount:0,items:[['PR-1026','spectumpakorn','Influencer Review (Barter)',0]]}
   ];
+  marketingMonthly.fill(0);
+  budgetCategories.length=0;
   let budgetYear = 2026;
   let budgetEditing = false;
   const budgetEscape = value => String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -2889,7 +2910,7 @@
   document.getElementById('worklogImport')?.addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data)||data.some(item=>!item||typeof item.date!=='string'||!Array.isArray(item.tasks)))throw new Error();if(!confirm(`นำเข้าข้อมูล ${data.length} วัน และแทนที่ข้อมูลปัจจุบันหรือไม่?`))return;mount.innerHTML='';data.forEach(record=>addDay(record,false));localStorage.setItem(KEY,JSON.stringify(data));filterHistory();alert('นำเข้าข้อมูลเรียบร้อยแล้ว')}catch(_){alert('ไฟล์ข้อมูลไม่ถูกต้อง กรุณาเลือกไฟล์ JSON ที่ส่งออกจากระบบนี้')}finally{event.target.value=''}});
   const applyCloudRecords=records=>{applyingCloud=true;mount.innerHTML='';records.length?records.forEach(record=>addDay(record,false)):showEmpty();localStorage.setItem(KEY,JSON.stringify(records));filterHistory();applyingCloud=false};
   window.workLogApp={readRecords,applyCloudRecords};
-  let records=[];try{records=JSON.parse(localStorage.getItem(KEY))||[]}catch(_){records=[]}records.length?records.forEach(record=>addDay(record,false)):addDay({},false);save();
+  let records=[];try{records=JSON.parse(localStorage.getItem(KEY))||[]}catch(_){records=[]}records.length?records.forEach(record=>addDay(record,false)):showEmpty();if(records.length)save();
 })();
 </script>
 <script type="module">
