@@ -1354,7 +1354,7 @@
         <article class="budget-summary-card remaining"><label>ยอดที่ยังต้องใช้ต่อไป</label><strong id="budgetRemaining">฿ 0.00</strong><div class="budget-progress"><span id="budgetPercentBar"></span></div><small id="budgetPercentText">0% ของเป้า</small></article>
       </div>
       <section class="budget-panel">
-        <div class="budget-panel-head"><div><h2 id="budgetTableTitle">เป้า &amp; ยอดรายเดือน ปี 2026</h2><small>กรอก “เป้า” ของแต่ละช่องทาง แล้วระบบคำนวณรวมและยอดคงเหลืออัตโนมัติ</small></div><div style="display:flex;gap:8px"><button class="budget-edit" id="budgetAddMonth">＋ เพิ่มเดือน</button><button class="budget-edit" id="budgetEditTargets">✎ แก้ไข</button></div></div>
+        <div class="budget-panel-head"><div><h2 id="budgetTableTitle">เป้า &amp; ยอดขายรายเดือน ปี 2026</h2><small>ยอดขายส่วนนี้กรอกเอง ระบบจะไม่ดึงค่าใช้จ่ายมาใส่อัตโนมัติ</small></div><div style="display:flex;gap:8px"><button class="budget-edit" id="budgetAddMonth">＋ เพิ่มเดือน</button><button class="budget-edit" id="budgetEditTargets">✎ แก้ไข</button></div></div>
         <div class="budget-table-wrap"><table class="budget-table"><thead><tr id="budgetTableHead"></tr></thead><tbody id="budgetBranchBody"></tbody></table></div>
       </section>
       <section class="budget-panel">
@@ -2945,7 +2945,7 @@
     eventRecords.forEach(record=>Object.entries(record.dailySales||{}).forEach(([date,value])=>{const match=/^(\d{4})-(\d{2})-\d{2}$/.exec(date);if(!match||Number(match[1])!==year)return;const month=Number(match[2])-1;if(month>=0&&month<months.length)months[month]+=Math.max(0,Number(value)||0);}));
     return months;
   }
-  const budgetValuesForBranch=name=>{const base=name==='Event Bloom'?eventMonthlySales(budgetYear):budgetMonthly[name],dynamic=budgetDynamicMonths(name,budgetYear);return Array.from({length:budgetMonthNames.length},(_,index)=>(Number(base?.[index])||0)+(Number(dynamic[index])||0));};
+  const budgetValuesForBranch=name=>name==='Event Bloom'?eventMonthlySales(budgetYear):(budgetMonthly[name]||Array.from({length:budgetMonthNames.length},()=>0));
   function selectedBudgetBranches(){ const value=document.getElementById('budgetBranch')?.value || 'all'; return value==='all'?Object.keys(budgetTargets):[value]; }
   function renderBudget(){
     if(!document.getElementById('budgetBranchBody')) return;
@@ -2959,13 +2959,13 @@
     document.getElementById('budgetPercentBar').style.width=`${Math.min(100,percent)}%`;
     document.getElementById('budgetPercentText').textContent=`${percent.toFixed(1)}% ของเป้า`;
     document.getElementById('budgetYearLabel').textContent=`${budgetYear} / ${budgetYear+543}`;
-    document.getElementById('budgetTableTitle').textContent=`เป้า & ยอดรายเดือน ปี ${budgetYear}`;
+    document.getElementById('budgetTableTitle').textContent=`เป้า & ยอดขายรายเดือน ปี ${budgetYear}`;
     const budgetTable=document.querySelector('.budget-table');
     if(budgetTable)budgetTable.style.minWidth=`${Math.max(1680,560+(budgetMonthNames.length*120))}px`;
     document.getElementById('budgetTableHead').innerHTML='<th>ช่องทาง</th><th>เป้า</th><th>รวม</th><th>ขาดอีก</th>'+budgetMonthNames.map((month,index)=>`<th>${budgetEditing?`<input class="budget-month-name-edit" data-budget-month-name="${index}" value="${budgetEscape(month)}" aria-label="แก้ไขชื่อคอลัมน์ ${budgetEscape(month)}">`:budgetEscape(month)}</th>`).join('');
     document.getElementById('marketingYear').textContent=budgetYear;
     const marketingYearSelect=document.getElementById('marketingYearSelect');if(marketingYearSelect){marketingYearSelect.innerHTML=Array.from({length:11},(_,index)=>budgetYear-5+index).map(year=>`<option value="${year}" ${year===budgetYear?'selected':''}>${year} / ${year+543}</option>`).join('');}
-    const rows=branches.map(name=>{ const values=budgetValuesForBranch(name),total=budgetSum(values),eventSource=name==='Event Bloom'; return `<tr><td><b>${name}</b>${eventSource?'<small style="display:block;margin-top:4px;color:#6d968d">ดึงจากหน้า Event</small>':''}</td><td class="target">${budgetEditing?`<input class="budget-inline-edit" data-budget-target="${name}" type="number" min="0" value="${budgetTargets[name]}">`:budgetMoney(budgetTargets[name])}</td><td class="spent">${budgetMoney(total)}</td><td class="remaining">${budgetMoney(Math.max(0,budgetTargets[name]-total))}</td>${values.map((value,month)=>`<td>${budgetEditing&&!eventSource?`<input class="budget-inline-edit" style="width:112px" data-budget-month-branch="${name}" data-budget-month-index="${month}" type="number" min="0" step="0.01" value="${value}">`:(value?budgetMoney(value):'–')}</td>`).join('')}</tr>`; }).join('');
+    const rows=branches.map(name=>{ const values=budgetValuesForBranch(name),total=budgetSum(values),eventSource=name==='Event Bloom'; return `<tr><td><b>${name}</b>${eventSource?'<small style="display:block;margin-top:4px;color:#6d968d">ดึงยอดขายจากหน้า Event</small>':''}</td><td class="target">${budgetEditing?`<input class="budget-inline-edit" data-budget-target="${name}" type="number" min="0" value="${budgetTargets[name]}">`:budgetMoney(budgetTargets[name])}</td><td class="spent">${budgetMoney(total)}</td><td class="remaining">${budgetMoney(Math.max(0,budgetTargets[name]-total))}</td>${values.map((value,month)=>`<td>${budgetEditing&&!eventSource?`<input class="budget-inline-edit" style="width:112px" data-budget-month-branch="${name}" data-budget-month-index="${month}" type="number" min="0" step="0.01" value="${value}">`:(value?budgetMoney(value):'–')}</td>`).join('')}</tr>`; }).join('');
     const totalMonths=Array.from({length:budgetMonthNames.length},(_,i)=>budgetSum(branches.map(name=>budgetValuesForBranch(name)[i])));
     document.getElementById('budgetBranchBody').innerHTML=rows+`<tr><td><b>รวมทุกช่องทาง</b></td><td class="target">${budgetMoney(target)}</td><td class="spent">${budgetMoney(spent)}</td><td class="remaining">${budgetMoney(remaining)}</td>${totalMonths.map(value=>`<td><b>${value?budgetMoney(value):'–'}</b></td>`).join('')}</tr>`;
     renderMarketing(target);
