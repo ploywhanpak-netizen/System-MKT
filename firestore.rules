@@ -10,6 +10,13 @@ service cloud.firestore {
     //   date: string, required, immutable, YYYY-MM-DD format, max 10 chars
     //   payload: string, required, JSON-encoded work-log data, max 50,000 chars
     //   updatedAt: timestamp, required, supplied by the server
+    //
+    // Collection: users/{userId}/events/{eventId}
+    // Fields:
+    //   ownerUid: string, required, immutable, must match authenticated UID
+    //   id: string, required, immutable, must match eventId, max 120 chars
+    //   payload: string, required, JSON-encoded Event data, max 50,000 chars
+    //   updatedAt: timestamp, required, supplied by the server
 
     function isAuthenticated() {
       return request.auth != null;
@@ -46,6 +53,24 @@ service cloud.firestore {
         data.updatedAt == request.time;
     }
 
+    function isValidEvent(data, userId, eventId) {
+      return data.keys().hasAll(['ownerUid', 'id', 'payload', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerUid', 'id', 'payload', 'updatedAt']) &&
+        data.ownerUid is string &&
+        data.ownerUid.size() > 0 &&
+        data.ownerUid.size() <= 128 &&
+        data.ownerUid == userId &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 120 &&
+        data.id == eventId &&
+        data.payload is string &&
+        data.payload.size() > 0 &&
+        data.payload.size() <= 50000 &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
     match /users/{userId}/workLogs/{dateId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) &&
@@ -56,6 +81,19 @@ service cloud.firestore {
         uidNotModified() &&
         request.resource.data.date == resource.data.date &&
         isValidWorkLog(request.resource.data, userId, dateId);
+      allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /users/{userId}/events/{eventId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        uidUnchanged(userId) &&
+        isValidEvent(request.resource.data, userId, eventId);
+      allow update: if isOwner(userId) &&
+        uidUnchanged(userId) &&
+        uidNotModified() &&
+        request.resource.data.id == resource.data.id &&
+        isValidEvent(request.resource.data, userId, eventId);
       allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
     }
 
