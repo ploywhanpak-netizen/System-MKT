@@ -1247,7 +1247,7 @@
     <section data-page="event">
       <div class="topbar">
         <div><div class="page-title">Event</div><div class="page-sub">รวมข้อมูล Event ทั้งหมดและบันทึกยอดขายแยกตามงาน</div></div>
-        <div class="top-actions"><span class="worklog-cloud-status" id="eventCloudStatus">☁ ยังไม่ได้เข้าสู่ระบบ</span><button class="btn" id="eventCloudLogin" type="button">เข้าสู่ระบบ Google</button><button class="btn" id="eventCloudLogout" type="button" hidden>ออกจากระบบ</button><button class="btn btn-primary event-page-add" type="button">＋ เพิ่ม Event</button></div>
+        <div class="top-actions"><span class="worklog-cloud-status online" id="eventCloudStatus">☁ ฐานข้อมูลกลางของทีม</span><button class="btn btn-primary event-page-add" type="button">＋ เพิ่ม Event</button></div>
       </div>
       <div class="event-page-card">
         <div class="table-head">🎪 ตาราง Event ทั้งหมด</div>
@@ -1466,7 +1466,7 @@
   const eventSaveButton = eventForm.querySelector('.event-save');
   const eventHeadTools = document.createElement('div');
   eventHeadTools.className = 'event-head-tools';
-  eventHeadTools.innerHTML = '<button class="event-head-action edit" type="button" title="แก้ไข Event" aria-label="แก้ไข Event">✎</button><button class="event-head-action delete" type="button" title="ลบ Event" aria-label="ลบ Event">🗑</button>';
+  eventHeadTools.innerHTML = '<button class="event-head-action edit" type="button" title="แก้ไข Event" aria-label="แก้ไข Event">✎</button>';
   eventForm.querySelector('.event-form-head').insertBefore(eventHeadTools,eventForm.querySelector('.event-close'));
   let activeEventId = null;
   const dayMs = 86400000;
@@ -1546,10 +1546,6 @@
     eventModal.hidden=false;
   };
   eventHeadTools.querySelector('.edit').addEventListener('click',()=>{setEventFormEditable(true);eventFormTitle.textContent='✎ แก้ไข Event';});
-  eventHeadTools.querySelector('.delete').addEventListener('click',()=>{
-    const record=eventRecords.find(item=>item.id===activeEventId);if(!record)return;
-    if(confirm(`ลบ Event “${record.name}” ใช่หรือไม่?`)){eventRecords=eventRecords.filter(item=>item.id!==record.id);saveEventRecords();renderEventTable();closeEventModal();}
-  });
   const getEventMetrics = record => {
     const start = parseLocalDate(record.start);
     const end = parseLocalDate(record.end);
@@ -1591,9 +1587,8 @@
       });
       salesCell.appendChild(salesInput);
       const actionCell=row.insertCell();
-      actionCell.innerHTML='<div class="event-row-actions"><button class="edit" type="button" title="แก้ไข" aria-label="แก้ไข">✎</button><button class="delete" type="button" title="ลบ" aria-label="ลบ">🗑</button></div>';
+      actionCell.innerHTML='<div class="event-row-actions"><button class="edit" type="button" title="แก้ไข" aria-label="แก้ไข">✎</button></div>';
       actionCell.querySelector('.edit').addEventListener('click',()=>openEventEditor(record,true));
-      actionCell.querySelector('.delete').addEventListener('click',()=>{if(confirm(`ลบ Event “${record.name}” ใช่หรือไม่?`)){eventRecords=eventRecords.filter(item=>item.id!==record.id);saveEventRecords();renderEventTable();}});
       row.addEventListener('click',event=>{if(!event.target.closest('input,button'))openEventEditor(record,false);});
     });
     const latest = eventRecords[eventRecords.length - 1];
@@ -2971,20 +2966,20 @@
 
   const firebaseConfig={projectId:'system-mkt-whanpak',appId:'1:109712255219:web:41beb86a742d23a4662f86',storageBucket:'system-mkt-whanpak.firebasestorage.app',apiKey:'AIzaSyDqzVUEKzaw4Enwryo-khzCgm8ykUv299E',authDomain:'system-mkt-whanpak.firebaseapp.com',messagingSenderId:'109712255219'};
   const firebaseApp=initializeApp(firebaseConfig),auth=getAuth(firebaseApp),db=getFirestore(firebaseApp),provider=new GoogleAuthProvider();
-  const status=document.getElementById('worklogCloudStatus'),login=document.getElementById('worklogCloudLogin'),logout=document.getElementById('worklogCloudLogout'),eventStatus=document.getElementById('eventCloudStatus'),eventLogin=document.getElementById('eventCloudLogin'),eventLogout=document.getElementById('eventCloudLogout');
+  const status=document.getElementById('worklogCloudStatus'),login=document.getElementById('worklogCloudLogin'),logout=document.getElementById('worklogCloudLogout'),eventStatus=document.getElementById('eventCloudStatus');
   let currentUser=null,unsubscribe=null,eventUnsubscribe=null,firstSnapshot=true,eventFirstSnapshot=true,saving=false,eventSaving=false;
-  const setStatus=(text,state='')=>{[status,eventStatus].filter(Boolean).forEach(item=>{item.textContent=text;item.className=`worklog-cloud-status ${state}`.trim()})};
+  const setStatus=(text,state='')=>{status.textContent=text;status.className=`worklog-cloud-status ${state}`.trim()};
+  const setEventStatus=(text,state='')=>{if(eventStatus){eventStatus.textContent=text;eventStatus.className=`worklog-cloud-status ${state}`.trim()}};
   const userCollection=()=>collection(db,'users',currentUser.uid,'workLogs');
-  const eventCollection=()=>collection(db,'users',currentUser.uid,'events');
+  const eventCollection=()=>collection(db,'sharedEvents');
   const syncRecords=async records=>{if(!currentUser||saving)return;saving=true;setStatus('☁ กำลังบันทึก...','online');try{const snapshot=await getDocs(userCollection()),batch=writeBatch(db),keep=new Set(records.map(record=>record.date));snapshot.docs.forEach(item=>{if(!keep.has(item.id))batch.delete(item.ref)});records.forEach(record=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(record.date))return;batch.set(doc(userCollection(),record.date),{ownerUid:currentUser.uid,date:record.date,payload:JSON.stringify(record),updatedAt:serverTimestamp()})});await batch.commit();setStatus(`☁ บันทึกออนไลน์แล้ว · ${currentUser.displayName||currentUser.email}`,'online')}catch(error){console.error(error);setStatus('☁ บันทึกออนไลน์ไม่สำเร็จ','error')}finally{saving=false}};
-  const syncEvents=async records=>{if(!currentUser||eventSaving)return;eventSaving=true;try{const snapshot=await getDocs(eventCollection()),batch=writeBatch(db),valid=(Array.isArray(records)?records:[]).filter(record=>record&&typeof record.id==='string'&&record.id.length<=120),keep=new Set(valid.map(record=>record.id));snapshot.docs.forEach(item=>{if(!keep.has(item.id))batch.delete(item.ref)});valid.forEach(record=>batch.set(doc(eventCollection(),record.id),{ownerUid:currentUser.uid,id:record.id,payload:JSON.stringify(record),updatedAt:serverTimestamp()}));await batch.commit();setStatus(`☁ บันทึกออนไลน์แล้ว · ${currentUser.displayName||currentUser.email}`,'online')}catch(error){console.error(error);setStatus('☁ บันทึก Event ออนไลน์ไม่สำเร็จ','error')}finally{eventSaving=false}};
+  const syncEvents=async records=>{if(eventSaving)return;eventSaving=true;setEventStatus('☁ กำลังบันทึกข้อมูลกลาง...','online');try{const batch=writeBatch(db),valid=(Array.isArray(records)?records:[]).filter(record=>record&&typeof record.id==='string'&&record.id.length<=120);valid.forEach(record=>batch.set(doc(eventCollection(),record.id),{id:record.id,payload:JSON.stringify(record),updatedAt:serverTimestamp()}));await batch.commit();setEventStatus('☁ บันทึกในฐานข้อมูลกลางแล้ว','online')}catch(error){console.error(error);setEventStatus('☁ บันทึกข้อมูลกลางไม่สำเร็จ','error')}finally{eventSaving=false}};
   window.workLogCloud={save:syncRecords};
   window.eventCloud={save:syncEvents};
   login?.addEventListener('click',async()=>{try{await signInWithPopup(auth,provider)}catch(error){console.error(error);setStatus('เข้าสู่ระบบไม่สำเร็จ','error')}});
-  eventLogin?.addEventListener('click',async()=>{try{await signInWithPopup(auth,provider)}catch(error){console.error(error);setStatus('เข้าสู่ระบบไม่สำเร็จ','error')}});
   logout?.addEventListener('click',()=>signOut(auth));
-  eventLogout?.addEventListener('click',()=>signOut(auth));
-  onAuthStateChanged(auth,user=>{currentUser=user;unsubscribe?.();eventUnsubscribe?.();unsubscribe=null;eventUnsubscribe=null;firstSnapshot=true;eventFirstSnapshot=true;[login,eventLogin].filter(Boolean).forEach(item=>item.hidden=!!user);[logout,eventLogout].filter(Boolean).forEach(item=>item.hidden=!user);if(!user){setStatus('☁ ยังไม่ได้เข้าสู่ระบบ');return}setStatus(`☁ เชื่อมต่อแล้ว · ${user.displayName||user.email}`,'online');unsubscribe=onSnapshot(userCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));if(firstSnapshot){firstSnapshot=false;if(!records.length){const local=window.workLogApp?.readRecords?.()||[];if(local.length)await syncRecords(local);return}}window.workLogApp?.applyCloudRecords?.(records)},error=>{console.error(error);setStatus('☁ อ่านข้อมูลออนไลน์ไม่สำเร็จ','error')});eventUnsubscribe=onSnapshot(eventCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean);if(eventFirstSnapshot){eventFirstSnapshot=false;if(!records.length){const local=window.eventApp?.readRecords?.()||[];if(local.length)await syncEvents(local);return}}window.eventApp?.applyCloudRecords?.(records)},error=>{console.error(error);setStatus('☁ อ่าน Event ออนไลน์ไม่สำเร็จ','error')})});
+  eventUnsubscribe=onSnapshot(eventCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean);if(eventFirstSnapshot){eventFirstSnapshot=false;if(!records.length){const local=window.eventApp?.readRecords?.()||[];if(local.length){await syncEvents(local);return}}}window.eventApp?.applyCloudRecords?.(records);setEventStatus('☁ เชื่อมต่อฐานข้อมูลกลางแล้ว','online')},error=>{console.error(error);setEventStatus('☁ อ่านข้อมูลกลางไม่สำเร็จ','error')});
+  onAuthStateChanged(auth,user=>{currentUser=user;unsubscribe?.();unsubscribe=null;firstSnapshot=true;login.hidden=!!user;logout.hidden=!user;if(!user){setStatus('☁ ยังไม่ได้เข้าสู่ระบบ');return}setStatus(`☁ เชื่อมต่อแล้ว · ${user.displayName||user.email}`,'online');unsubscribe=onSnapshot(userCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));if(firstSnapshot){firstSnapshot=false;if(!records.length){const local=window.workLogApp?.readRecords?.()||[];if(local.length)await syncRecords(local);return}}window.workLogApp?.applyCloudRecords?.(records)},error=>{console.error(error);setStatus('☁ อ่านข้อมูลออนไลน์ไม่สำเร็จ','error')})});
 </script>
 </body>
 </html>

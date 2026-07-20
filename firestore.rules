@@ -17,6 +17,13 @@ service cloud.firestore {
     //   id: string, required, immutable, must match eventId, max 120 chars
     //   payload: string, required, JSON-encoded Event data, max 50,000 chars
     //   updatedAt: timestamp, required, supplied by the server
+    //
+    // Collection: sharedEvents/{eventId}
+    // Public team Event data explicitly requested by the project owner.
+    // Fields:
+    //   id: string, required, immutable, must match eventId, max 120 chars
+    //   payload: string, required, JSON-encoded Event data only, max 50,000 chars
+    //   updatedAt: timestamp, required, supplied by the server
 
     function isAuthenticated() {
       return request.auth != null;
@@ -71,6 +78,20 @@ service cloud.firestore {
         data.updatedAt == request.time;
     }
 
+    function isValidSharedEvent(data, eventId) {
+      return data.keys().hasAll(['id', 'payload', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'payload', 'updatedAt']) &&
+        data.id is string &&
+        data.id.size() > 0 &&
+        data.id.size() <= 120 &&
+        data.id == eventId &&
+        data.payload is string &&
+        data.payload.size() > 0 &&
+        data.payload.size() <= 50000 &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
     match /users/{userId}/workLogs/{dateId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) &&
@@ -95,6 +116,14 @@ service cloud.firestore {
         request.resource.data.id == resource.data.id &&
         isValidEvent(request.resource.data, userId, eventId);
       allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /sharedEvents/{eventId} {
+      allow read: if true;
+      allow create: if isValidSharedEvent(request.resource.data, eventId);
+      allow update: if request.resource.data.id == resource.data.id &&
+        isValidSharedEvent(request.resource.data, eventId);
+      allow delete: if false;
     }
 
     match /{document=**} {
