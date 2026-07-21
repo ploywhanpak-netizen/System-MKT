@@ -3432,12 +3432,35 @@
   };
   const stopSharedListeners=()=>{eventUnsubscribe?.();sharedStateUnsubscribe?.();accessCodeUnsubscribe?.();eventUnsubscribe=null;sharedStateUnsubscribe=null;accessCodeUnsubscribe=null;};
 
+  // TEMPORARY bypass (client-side only): the Cloud Function that verifies
+  // codes for real isn't deployed yet, so 0000+admin unlocks the UI locally
+  // without touching Firebase Auth. This does NOT grant any special Firestore
+  // access - shared data will only load/save if firestore.rules are still the
+  // old open ones. Remove BYPASS_CODE once `firebase deploy --only functions`
+  // actually succeeds.
+  const BYPASS_CODE='0000';
+  let bypassActive=sessionStorage.getItem('quackapprove-bypass-role')==='admin';
+  const applyBypassSession=(role,name)=>{
+    bypassActive=true;
+    sessionStorage.setItem('quackapprove-bypass-role',role);
+    codeGate.hidden=true;
+    codeSessionBadge.hidden=false;
+    codeSessionName.textContent=`${name} · ${roleLabel[role]||role} (โหมดชั่วคราว)`;
+    document.querySelector(`[data-entry-mode="${entryModeByRole[role]||'requester'}"]`)?.click();
+    if(role==='admin')document.getElementById('accessCodeCard').hidden=false;
+    startSharedListeners();
+  };
+
   codeGateForm.addEventListener('submit',async event=>{
     event.preventDefault();
     codeGateError.hidden=true;
     codeGateSubmit.disabled=true;
     try{
       const code=codeGateInput.value.trim();
+      if(code===BYPASS_CODE&&selectedGateRole==='admin'){
+        applyBypassSession('admin','ผู้ดูแลระบบ (ชั่วคราว)');
+        return;
+      }
       const result=await verifyAccessCodeFn({code});
       if(result.data.role!==selectedGateRole){
         throw new Error(`รหัสนี้ไม่ใช่สิทธิ์ ${roleLabel[selectedGateRole]||selectedGateRole} กรุณาเลือกช่องทางให้ตรงกับรหัสของคุณ`);
@@ -3454,10 +3477,22 @@
     }
   });
 
-  codeSessionLogout.addEventListener('click',()=>{sessionStorage.removeItem('quackapprove-entry-mode');signOut(auth);});
+  codeSessionLogout.addEventListener('click',()=>{
+    sessionStorage.removeItem('quackapprove-entry-mode');
+    sessionStorage.removeItem('quackapprove-bypass-role');
+    bypassActive=false;
+    if(auth.currentUser){signOut(auth);return;}
+    codeGate.hidden=false;
+    codeSessionBadge.hidden=true;
+    document.getElementById('accessCodeCard').hidden=true;
+    stopSharedListeners();
+  });
+
+  if(bypassActive)applyBypassSession('admin','ผู้ดูแลระบบ (โหมดชั่วคราว)');
 
   onAuthStateChanged(auth,async user=>{
     if(!user){
+      if(bypassActive)return;
       codeGate.hidden=false;
       codeSessionBadge.hidden=true;
       document.getElementById('accessCodeCard').hidden=true;
