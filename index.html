@@ -1445,6 +1445,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
+  const myjobEsc=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   const statusTrackingMount = document.getElementById('statusTrackingMount');
   const statusTrackingTable = document.querySelector('[data-page="home"] > .table-section');
   if (statusTrackingMount && statusTrackingTable) statusTrackingMount.appendChild(statusTrackingTable);
@@ -3082,7 +3083,6 @@
   const myjobMetaDefault={name:'Content',activeView:'view-table',views:[{id:'view-table',name:'ตาราง',type:'table'},{id:'view-board',name:'Board',type:'board'},{id:'view-timeline',name:'Timeline',type:'timeline'}],columns:[{id:'title',label:'Content name',type:'text',builtin:true},{id:'due',label:'Date Post',type:'date',builtin:true},{id:'description',label:'Action / idea',type:'text',builtin:true},{id:'remark',label:'Remark',type:'text',builtin:true}]};
   const myjobReadMeta=()=>{try{const value=JSON.parse(localStorage.getItem(myjobStore.meta)||'null');return value&&typeof value==='object'?{...myjobMetaDefault,...value,views:Array.isArray(value.views)&&value.views.length?value.views:myjobMetaDefault.views,columns:Array.isArray(value.columns)&&value.columns.length?value.columns:myjobMetaDefault.columns}:structuredClone(myjobMetaDefault)}catch(_){return structuredClone(myjobMetaDefault)}};
   let myjobTags=myjobRead(myjobStore.tags,myjobDefaults),myjobTasks=myjobRead(myjobStore.tasks,[]),myjobGroups=myjobRead(myjobStore.groups,['ทั่วไป']),myjobCollapsed=myjobRead(myjobStore.collapsed,[]),myjobMeta=myjobReadMeta(),myjobEditingId=null,myjobUpdateTaskId=null,myjobActiveTag='all',myjobDragId=null;
-  const myjobEsc=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   const myjobId=prefix=>`${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`;
   const myjobSave=()=>{localStorage.setItem(myjobStore.tags,JSON.stringify(myjobTags));localStorage.setItem(myjobStore.tasks,JSON.stringify(myjobTasks));localStorage.setItem(myjobStore.groups,JSON.stringify(myjobGroups));localStorage.setItem(myjobStore.collapsed,JSON.stringify(myjobCollapsed));localStorage.setItem(myjobStore.meta,JSON.stringify(myjobMeta));};
   const myjobStatusLabel={todo:'ยังไม่เริ่ม',doing:'กำลังทำ',done:'เสร็จแล้ว'},myjobPriorityLabel={low:'ปกติ',medium:'สำคัญ',high:'ด่วน'};
