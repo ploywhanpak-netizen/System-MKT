@@ -3457,7 +3457,7 @@
     codeGateSubmit.disabled=true;
     try{
       const code=codeGateInput.value.trim();
-      if(code===BYPASS_CODE&&selectedGateRole==='admin'){
+      if(code===BYPASS_CODE){
         applyBypassSession('admin','ผู้ดูแลระบบ (ชั่วคราว)');
         return;
       }
