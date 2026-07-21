@@ -137,18 +137,24 @@ service cloud.firestore {
       allow delete: if isOwner(userId) && resource.data.ownerUid == request.auth.uid;
     }
 
+    // TEMPORARY: opened back up so the team can use shared data (Event
+    // calendar, team app state) while the 4-digit code login is disabled on
+    // the client (no real Firebase Auth session exists yet, so hasAnyRole()
+    // would block everyone). Restore the hasAnyRole() checks above once
+    // `firebase deploy --only functions` succeeds and the code gate is
+    // switched back on in index.html.
     match /sharedEvents/{eventId} {
-      allow read: if hasAnyRole();
-      allow create: if hasAnyRole() && isValidSharedEvent(request.resource.data, eventId);
-      allow update: if hasAnyRole() && request.resource.data.id == resource.data.id &&
+      allow read: if true;
+      allow create: if isValidSharedEvent(request.resource.data, eventId);
+      allow update: if request.resource.data.id == resource.data.id &&
         isValidSharedEvent(request.resource.data, eventId);
       allow delete: if false;
     }
 
     match /sharedAppData/{stateId} {
-      allow read: if stateId == 'team' && hasAnyRole();
-      allow create: if hasAnyRole() && isValidSharedAppData(request.resource.data, stateId);
-      allow update: if hasAnyRole() && request.resource.data.id == resource.data.id &&
+      allow read: if stateId == 'team';
+      allow create: if isValidSharedAppData(request.resource.data, stateId);
+      allow update: if request.resource.data.id == resource.data.id &&
         isValidSharedAppData(request.resource.data, stateId);
       allow delete: if false;
     }
