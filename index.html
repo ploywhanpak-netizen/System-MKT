@@ -1059,7 +1059,7 @@
 </head>
 <body>
 
-  <div class="code-gate" id="codeGate"><div class="code-gate-card"><div class="code-gate-logo">🦆</div><h1>QuackApprove</h1><p>เลือกช่องทางเข้า แล้วกรอกรหัสผ่าน 4 หลักของคุณ</p><div class="code-gate-roles" id="codeGateRoles"><button type="button" class="code-gate-role" data-gate-role="requester"><span class="code-gate-role-icon">✍️</span><span>ผู้ขออนุมัติ</span></button><button type="button" class="code-gate-role active" data-gate-role="approver"><span class="code-gate-role-icon">🦆</span><span>ผู้อนุมัติ</span></button><button type="button" class="code-gate-role" data-gate-role="admin"><span class="code-gate-role-icon">🛠️</span><span>แอดมิน</span></button></div><form id="codeGateForm"><input id="codeGateInput" inputmode="numeric" type="password" minlength="4" maxlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="off" required autofocus><button type="submit" id="codeGateSubmit">เข้าสู่ระบบ</button></form><div class="code-gate-error" id="codeGateError" hidden></div><div class="code-gate-hint">ยังไม่มีรหัส? ติดต่อแอดมินของทีม</div></div></div>
+  <div class="code-gate" id="codeGate"><div class="code-gate-card"><div class="code-gate-logo">🦆</div><h1>QuackApprove</h1><p>เลือกช่องทางเข้าเพื่อเข้าสู่ระบบ (ปิดการใส่รหัสไว้ชั่วคราว)</p><div class="code-gate-roles" id="codeGateRoles"><button type="button" class="code-gate-role" data-gate-role="requester"><span class="code-gate-role-icon">✍️</span><span>ผู้ขออนุมัติ</span></button><button type="button" class="code-gate-role active" data-gate-role="approver"><span class="code-gate-role-icon">🦆</span><span>ผู้อนุมัติ</span></button><button type="button" class="code-gate-role" data-gate-role="admin"><span class="code-gate-role-icon">🛠️</span><span>แอดมิน</span></button></div><form id="codeGateForm" hidden><input id="codeGateInput" inputmode="numeric" type="password" minlength="4" maxlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="off"><button type="submit" id="codeGateSubmit">เข้าสู่ระบบ</button></form><div class="code-gate-error" id="codeGateError" hidden></div><div class="code-gate-hint">แตะการ์ดด้านบนเพื่อเข้าสู่ระบบทันที</div></div></div>
   <div class="code-session-badge" id="codeSessionBadge" hidden><span id="codeSessionName"></span><button type="button" id="codeSessionLogout" title="ออกจากระบบ">ออกจากระบบ</button></div>
 
   <section class="entry-gateway" id="entryGateway" aria-labelledby="entryTitle">
@@ -3397,6 +3397,10 @@
       button.classList.add('active');
       selectedGateRole=button.dataset.gateRole;
       codeGateError.hidden=true;
+      // TEMPORARY: password entry is disabled for now, so picking a role
+      // logs in immediately. See the bypass note further down for how to
+      // restore real 4-digit code login once Cloud Functions are deployed.
+      applyBypassSession(selectedGateRole,roleLabel[selectedGateRole]||selectedGateRole);
     });
   });
 
@@ -3433,13 +3437,18 @@
   const stopSharedListeners=()=>{eventUnsubscribe?.();sharedStateUnsubscribe?.();accessCodeUnsubscribe?.();eventUnsubscribe=null;sharedStateUnsubscribe=null;accessCodeUnsubscribe=null;};
 
   // TEMPORARY bypass (client-side only): the Cloud Function that verifies
-  // codes for real isn't deployed yet, so 0000+admin unlocks the UI locally
-  // without touching Firebase Auth. This does NOT grant any special Firestore
-  // access - shared data will only load/save if firestore.rules are still the
-  // old open ones. Remove BYPASS_CODE once `firebase deploy --only functions`
-  // actually succeeds.
+  // codes for real isn't deployed yet, and password entry is switched off
+  // for now, so tapping any role card logs straight in locally without
+  // touching Firebase Auth. This does NOT grant any special Firestore
+  // access - shared/team data (sharedEvents, sharedAppData, accessCodes)
+  // will only load/save once firestore.rules with hasAnyRole()/hasRole()
+  // are backed by a real signed-in user, i.e. once
+  // `firebase deploy --only functions,firestore:rules` actually succeeds.
+  // To restore real 4-digit code login: unhide #codeGateForm again and
+  // remove the `applyBypassSession(...)` call from the role-card click
+  // handler above.
   const BYPASS_CODE='0000';
-  let bypassActive=sessionStorage.getItem('quackapprove-bypass-role')==='admin';
+  let bypassActive=!!sessionStorage.getItem('quackapprove-bypass-role');
   const applyBypassSession=(role,name)=>{
     bypassActive=true;
     sessionStorage.setItem('quackapprove-bypass-role',role);
@@ -3447,7 +3456,7 @@
     codeSessionBadge.hidden=false;
     codeSessionName.textContent=`${name} · ${roleLabel[role]||role} (โหมดชั่วคราว)`;
     document.querySelector(`[data-entry-mode="${entryModeByRole[role]||'requester'}"]`)?.click();
-    if(role==='admin')document.getElementById('accessCodeCard').hidden=false;
+    document.getElementById('accessCodeCard').hidden=role!=='admin';
     startSharedListeners();
   };
 
@@ -3458,7 +3467,7 @@
     try{
       const code=codeGateInput.value.trim();
       if(code===BYPASS_CODE){
-        applyBypassSession('admin','ผู้ดูแลระบบ (ชั่วคราว)');
+        applyBypassSession(selectedGateRole,roleLabel[selectedGateRole]||selectedGateRole);
         return;
       }
       const result=await verifyAccessCodeFn({code});
@@ -3488,7 +3497,10 @@
     stopSharedListeners();
   });
 
-  if(bypassActive)applyBypassSession('admin','ผู้ดูแลระบบ (โหมดชั่วคราว)');
+  if(bypassActive){
+    const savedRole=sessionStorage.getItem('quackapprove-bypass-role')||'requester';
+    applyBypassSession(savedRole,roleLabel[savedRole]||savedRole);
+  }
 
   onAuthStateChanged(auth,async user=>{
     if(!user){
