@@ -32,6 +32,19 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Access-code based roles (requester/approver/admin). The custom token is
+    // minted by the verifyAccessCode Cloud Function only after a valid,
+    // active 4-digit code is checked server-side - this is not something a
+    // client can fake, since request.auth.token comes from a verified JWT.
+    function hasAnyRole() {
+      return isAuthenticated() &&
+        request.auth.token.role in ['requester', 'approver', 'admin'];
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+
     function uidUnchanged(userId) {
       return request.resource.data.ownerUid == request.auth.uid &&
         request.resource.data.ownerUid == userId;
@@ -125,19 +138,32 @@ service cloud.firestore {
     }
 
     match /sharedEvents/{eventId} {
-      allow read: if true;
-      allow create: if isValidSharedEvent(request.resource.data, eventId);
-      allow update: if request.resource.data.id == resource.data.id &&
+      allow read: if hasAnyRole();
+      allow create: if hasAnyRole() && isValidSharedEvent(request.resource.data, eventId);
+      allow update: if hasAnyRole() && request.resource.data.id == resource.data.id &&
         isValidSharedEvent(request.resource.data, eventId);
       allow delete: if false;
     }
 
     match /sharedAppData/{stateId} {
-      allow read: if stateId == 'team';
-      allow create: if isValidSharedAppData(request.resource.data, stateId);
-      allow update: if request.resource.data.id == resource.data.id &&
+      allow read: if stateId == 'team' && hasAnyRole();
+      allow create: if hasAnyRole() && isValidSharedAppData(request.resource.data, stateId);
+      allow update: if hasAnyRole() && request.resource.data.id == resource.data.id &&
         isValidSharedAppData(request.resource.data, stateId);
       allow delete: if false;
+    }
+
+    // Access codes: {code} -> {name, role, active, createdAt, lastUsedAt}
+    // Only an already-authenticated admin can list/create/edit/delete codes
+    // through the app UI. The verifyAccessCode Cloud Function reads this
+    // collection with the Admin SDK, which bypasses these rules entirely,
+    // so a brand-new (not-yet-signed-in) person can still redeem a code.
+    match /codeAttempts/{ip} {
+      allow read, write: if false;
+    }
+
+    match /accessCodes/{code} {
+      allow read, write: if hasRole('admin');
     }
 
     match /{document=**} {

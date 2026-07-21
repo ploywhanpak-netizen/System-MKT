@@ -1035,9 +1035,28 @@
 
   [data-page]{ display:none; }
   [data-page].active{ display:block; }
+
+  .code-gate{ position:fixed; inset:0; z-index:99999; display:grid; place-items:center; padding:20px; background:linear-gradient(160deg,#0f2338,#17324c); }
+  .code-gate[hidden]{ display:none; }
+  .code-gate-card{ width:min(360px,100%); padding:36px 30px; border-radius:22px; background:#fff; box-shadow:0 30px 80px rgba(4,22,35,.35); text-align:center; }
+  .code-gate-logo{ font-size:40px; }
+  .code-gate-card h1{ margin:8px 0 4px; font-size:22px; color:#17283d; }
+  .code-gate-card p{ margin:0 0 22px; color:#71829a; font-size:13px; }
+  .code-gate-card form{ display:grid; gap:12px; }
+  .code-gate-card input{ width:100%; box-sizing:border-box; border:1px solid #d5e0ea; border-radius:12px; padding:16px; font:inherit; font-size:26px; letter-spacing:14px; text-align:center; }
+  .code-gate-card button{ border:0; border-radius:12px; padding:14px; background:#238d83; color:#fff; font:inherit; font-weight:900; cursor:pointer; }
+  .code-gate-card button:disabled{ opacity:.6; cursor:progress; }
+  .code-gate-error{ margin-top:14px; padding:10px 12px; border-radius:10px; background:#fdecec; color:#c0392b; font-size:12px; font-weight:800; }
+  .code-gate-hint{ margin-top:18px; color:#9aa7b8; font-size:11px; }
+  .code-session-badge{ position:fixed; right:16px; bottom:16px; z-index:9000; display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; background:#17283d; color:#fff; font-size:12px; font-weight:800; box-shadow:0 10px 25px rgba(4,22,35,.25); }
+  .code-session-badge[hidden]{ display:none; }
+  .code-session-badge button{ border:0; border-radius:999px; padding:6px 10px; background:rgba(255,255,255,.15); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
 </style>
 </head>
 <body>
+
+  <div class="code-gate" id="codeGate"><div class="code-gate-card"><div class="code-gate-logo">🦆</div><h1>QuackApprove</h1><p>กรอกรหัสผ่าน 4 หลักของคุณเพื่อเข้าใช้งาน</p><form id="codeGateForm"><input id="codeGateInput" inputmode="numeric" type="password" minlength="4" maxlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="off" required autofocus><button type="submit" id="codeGateSubmit">เข้าสู่ระบบ</button></form><div class="code-gate-error" id="codeGateError" hidden></div><div class="code-gate-hint">ยังไม่มีรหัส? ติดต่อแอดมินของทีม</div></div></div>
+  <div class="code-session-badge" id="codeSessionBadge" hidden><span id="codeSessionName"></span><button type="button" id="codeSessionLogout" title="ออกจากระบบ">ออกจากระบบ</button></div>
 
   <section class="entry-gateway" id="entryGateway" aria-labelledby="entryTitle">
     <div class="entry-inner">
@@ -1365,6 +1384,7 @@
     <section data-page="settings" class="settings-page"><div class="settings-head"><h1>ตั้งค่า</h1><p>จัดการผู้อนุมัติ ระบบอัตโนมัติ ตัวเลือกฟอร์ม และคอลัมน์ฐานข้อมูล</p></div>
       <div class="settings-card auto-approval-card"><div><h2>ระบบอนุมัติอัตโนมัติ</h2><p>เมื่อเปิด ใบคำขอใหม่จะได้รับสถานะ “อนุมัติแล้ว” ทันที โดยไม่ต้องรอผู้อนุมัติกดยืนยัน</p><div id="autoApprovalStatus" class="auto-status">ปิดอยู่ — รอผู้อนุมัติตามปกติ</div></div><label class="switch" aria-label="เปิดหรือปิดระบบอนุมัติอัตโนมัติ"><input id="autoApprovalToggle" type="checkbox"><span class="switch-slider"></span></label></div>
       <div class="settings-card"><h2>เพิ่มผู้อนุมัติใหม่</h2><form id="approverForm" class="approver-add"><input id="approverName" required placeholder="ชื่อ-นามสกุล"><input id="approverRole" required placeholder="ตำแหน่ง"><input id="approverPin" required inputmode="numeric" type="password" minlength="4" maxlength="4" pattern="[0-9]{4}" placeholder="รหัสลับ 4 หลัก"><button type="submit">เพิ่ม</button></form><div class="approver-note">🔒 รหัสลับ 4 หลักใช้สำหรับเข้าสู่ระบบในฐานะผู้อนุมัติ และจะแสดงแบบปิดบังเสมอ</div><table class="approver-table"><thead><tr><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>รหัสผ่าน</th><th>จัดการ</th></tr></thead><tbody id="approverTableBody"></tbody></table><form id="approverLoginForm" class="approver-login"><b>เข้าสู่ระบบในฐานะผู้อนุมัติ</b><select id="approverLoginName" required></select><input id="approverLoginPin" type="password" inputmode="numeric" minlength="4" maxlength="4" pattern="[0-9]{4}" required placeholder="รหัสลับ 4 หลัก"><button type="submit">เข้าสู่ระบบ</button><span id="approverLoginResult" class="approver-login-result"></span></form></div>
+      <div class="settings-card" id="accessCodeCard" hidden><h2>จัดการรหัสเข้าใช้งานระบบ</h2><p>กำหนดรหัสผ่าน 4 หลักให้แต่ละคนพร้อมสิทธิ์ (ผู้ขออนุมัติ / ผู้อนุมัติ / แอดมิน) รหัสนี้ผูกกับ Firebase Authentication จริง ใช้แทนการล็อกอินเข้าเว็บทั้งระบบ · เห็นและแก้ไขได้เฉพาะผู้ที่ล็อกอินด้วยสิทธิ์แอดมิน</p><form id="accessCodeForm" class="approver-add"><input id="accessCodeName" required placeholder="ชื่อ-นามสกุล"><select id="accessCodeRole" required><option value="requester">ผู้ขออนุมัติ</option><option value="approver">ผู้อนุมัติ</option><option value="admin">แอดมิน</option></select><input id="accessCodeValue" required inputmode="numeric" type="password" minlength="4" maxlength="4" pattern="[0-9]{4}" placeholder="รหัสลับ 4 หลัก"><button type="submit">เพิ่ม / บันทึก</button></form><div class="approver-note">🔒 คนละรหัส คนละสิทธิ์ · แก้รหัสคนเดิมได้โดยกรอกชื่อเดิม + รหัสใหม่</div><table class="approver-table"><thead><tr><th>ชื่อ-นามสกุล</th><th>สิทธิ์</th><th>รหัส</th><th>ใช้งานล่าสุด</th><th>จัดการ</th></tr></thead><tbody id="accessCodeTableBody"></tbody></table><div class="approver-note" id="accessCodeEmpty" hidden>ยังไม่มีรหัสเข้าใช้งานที่สร้างไว้</div></div>
       <div class="settings-card"><h2>ประเภทค่าใช้จ่าย</h2><p>ผู้อนุมัติสามารถเพิ่มหรือลบประเภทค่าใช้จ่ายได้ รายการจะอัปเดตในแบบฟอร์มทันที</p><form class="settings-add-row" id="expenseTypeForm"><input id="expenseTypeInput" required placeholder="เพิ่มประเภทค่าใช้จ่ายใหม่"><button type="submit">＋ เพิ่มรายการ</button></form><div class="settings-option-list" id="expenseTypeList"></div></div>
     </section>
     <section data-page="approval-list">
@@ -2610,6 +2630,28 @@
   const approverTableBody=document.getElementById('approverTableBody'),approverLoginName=document.getElementById('approverLoginName');
   function renderApprovers(){approverTableBody.innerHTML=approvers.map((person,index)=>`<tr><td><b>${person.name}</b></td><td>${person.role}</td><td>🔒 ••••</td><td><div class="approver-actions"><button class="approver-change" type="button" data-approver-change="${index}">เปลี่ยนรหัส</button><button class="approver-delete" type="button" data-approver-delete="${index}">ลบ</button></div></td></tr>`).join('');approverLoginName.innerHTML='<option value="">— เลือกผู้อนุมัติ —</option>'+approvers.map((person,index)=>`<option value="${index}">${person.name} · ${person.role}</option>`).join('');const requestApprover=document.querySelector('#approvalRequestForm select[name="approver"]');if(requestApprover){const current=requestApprover.value;requestApprover.innerHTML='<option value="">— เลือกผู้อนุมัติ —</option>'+approvers.map(person=>`<option>${person.name}</option>`).join('');if(approvers.some(person=>person.name===current))requestApprover.value=current;}localStorage.setItem('quackapprove-approvers',JSON.stringify(approvers));}
   document.getElementById('approverForm').addEventListener('submit',event=>{event.preventDefault();const name=document.getElementById('approverName').value.trim(),role=document.getElementById('approverRole').value.trim(),pin=document.getElementById('approverPin').value;if(!/^\d{4}$/.test(pin))return;approvers.push({name,role,pin});renderApprovers();event.target.reset();});
+  const accessCodeTableBody=document.getElementById('accessCodeTableBody'),accessCodeEmpty=document.getElementById('accessCodeEmpty'),accessCodeCard=document.getElementById('accessCodeCard');
+  const accessCodeRoleLabel={requester:'ผู้ขออนุมัติ',approver:'ผู้อนุมัติ',admin:'แอดมิน'};
+  const renderAccessCodes=list=>{
+    const rows=(list||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    accessCodeTableBody.innerHTML=rows.map(item=>{const lastUsed=item.lastUsedAt?.seconds?new Date(item.lastUsedAt.seconds*1000).toLocaleString('th-TH'):'ยังไม่เคยใช้';return `<tr><td><b>${item.name||''}</b></td><td>${accessCodeRoleLabel[item.role]||item.role}</td><td>${item.code}</td><td>${lastUsed}</td><td class="approver-actions"><button data-access-code-toggle="${item.code}" data-active="${item.active!==false}">${item.active===false?'เปิดใช้งาน':'ระงับ'}</button><button class="approver-delete" data-access-code-delete="${item.code}">ลบ</button></td></tr>`;}).join('');
+    accessCodeEmpty.hidden=rows.length>0;
+  };
+  window.renderAccessCodes=renderAccessCodes;
+  window.showAccessCodeCard=()=>{accessCodeCard.hidden=false;};
+  document.getElementById('accessCodeForm').addEventListener('submit',async event=>{
+    event.preventDefault();
+    const name=document.getElementById('accessCodeName').value.trim(),role=document.getElementById('accessCodeRole').value,code=document.getElementById('accessCodeValue').value;
+    if(!/^\d{4}$/.test(code)){alert('กรุณากรอกรหัส 4 หลัก');return;}
+    try{await window.accessCodeAdmin?.save(code,{name,role});event.target.reset();}
+    catch(error){console.error(error);alert('บันทึกไม่สำเร็จ: '+(error?.message||'ไม่ทราบสาเหตุ'));}
+  });
+  accessCodeTableBody.addEventListener('click',async event=>{
+    const toggle=event.target.closest('[data-access-code-toggle]'),del=event.target.closest('[data-access-code-delete]');
+    if(toggle){const code=toggle.dataset.accessCodeToggle,nextActive=toggle.dataset.active!=='true';try{await window.accessCodeAdmin?.setActive(code,nextActive);}catch(error){console.error(error);alert('เปลี่ยนสถานะไม่สำเร็จ');}}
+    if(del){if(!confirm('ลบรหัสนี้ใช่หรือไม่'))return;try{await window.accessCodeAdmin?.remove(del.dataset.accessCodeDelete);}catch(error){console.error(error);alert('ลบไม่สำเร็จ');}}
+  });
+
   approverTableBody.addEventListener('click',event=>{const change=event.target.closest('[data-approver-change]'),remove=event.target.closest('[data-approver-delete]');if(change){const index=Number(change.dataset.approverChange),pin=prompt(`กรอกรหัสลับใหม่ 4 หลักสำหรับ ${approvers[index].name}`);if(/^\d{4}$/.test(pin||'')){approvers[index].pin=pin;renderApprovers();}else if(pin!==null)alert('กรุณากรอกตัวเลข 4 หลัก');}if(remove){const index=Number(remove.dataset.approverDelete);if(confirm(`ลบผู้อนุมัติ ${approvers[index].name} ใช่หรือไม่`)){approvers.splice(index,1);renderApprovers();}}});
   document.getElementById('approverLoginForm').addEventListener('submit',event=>{event.preventDefault();const index=Number(approverLoginName.value),pin=document.getElementById('approverLoginPin').value,result=document.getElementById('approverLoginResult'),person=approvers[index];if(person&&person.pin===pin){result.textContent=`✓ เข้าสู่ระบบเป็น ${person.name} แล้ว`;result.className='approver-login-result ok';sessionStorage.setItem('quackapprove-current-approver',person.name);}else{result.textContent='รหัสลับไม่ถูกต้อง';result.className='approver-login-result error';}document.getElementById('approverLoginPin').value='';});renderApprovers();
 
@@ -3320,30 +3362,118 @@
 </script>
 <script type="module">
   import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
-  import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup,signOut} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
-  import {getFirestore,collection,doc,setDoc,getDocs,onSnapshot,writeBatch,serverTimestamp} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+  import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup,signInWithCustomToken,signOut} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+  import {getFirestore,collection,doc,setDoc,deleteDoc,getDocs,onSnapshot,writeBatch,serverTimestamp} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+  import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-functions.js';
 
   const firebaseConfig={projectId:'system-mkt-whanpak',appId:'1:109712255219:web:41beb86a742d23a4662f86',storageBucket:'system-mkt-whanpak.firebasestorage.app',apiKey:'AIzaSyDqzVUEKzaw4Enwryo-khzCgm8ykUv299E',authDomain:'system-mkt-whanpak.firebaseapp.com',messagingSenderId:'109712255219'};
-  const firebaseApp=initializeApp(firebaseConfig),auth=getAuth(firebaseApp),db=getFirestore(firebaseApp),provider=new GoogleAuthProvider();
-  const status=document.getElementById('worklogCloudStatus'),login=document.getElementById('worklogCloudLogin'),logout=document.getElementById('worklogCloudLogout'),eventStatus=document.getElementById('eventCloudStatus');
-  let currentUser=null,unsubscribe=null,eventUnsubscribe=null,firstSnapshot=true,eventFirstSnapshot=true,saving=false,eventSaving=false;
-  const setStatus=(text,state='')=>{status.textContent=text;status.className=`worklog-cloud-status ${state}`.trim()};
-  const setEventStatus=(text,state='')=>{if(eventStatus){eventStatus.textContent=text;eventStatus.className=`worklog-cloud-status ${state}`.trim()}};
-  const userCollection=()=>collection(db,'users',currentUser.uid,'workLogs');
+
+  // Default app/auth: the 4-digit access-code session. Everything the whole
+  // team shares (Budget, Approval, Influencer, Content board, Event, etc.)
+  // lives here and is gated by the role custom claim from that sign-in.
+  const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),functionsInstance=getFunctions(app);
+  const verifyAccessCodeFn=httpsCallable(functionsInstance,'verifyAccessCode');
+
+  // Second, independent app/auth just for Google sign-in on the private
+  // hourly work log. Kept separate on purpose: signing into Google here must
+  // never replace the role-code session above (Firebase Auth only supports
+  // one active user per Auth instance, so two instances = two independent
+  // sessions that can both be active at the same time).
+  const worklogApp=initializeApp(firebaseConfig,'worklog'),worklogAuth=getAuth(worklogApp),worklogDb=getFirestore(worklogApp),provider=new GoogleAuthProvider();
+
+  // ---------- 4-digit access-code gate (shared team data) ----------
+  const codeGate=document.getElementById('codeGate'),codeGateForm=document.getElementById('codeGateForm'),codeGateInput=document.getElementById('codeGateInput'),codeGateError=document.getElementById('codeGateError'),codeGateSubmit=document.getElementById('codeGateSubmit');
+  const codeSessionBadge=document.getElementById('codeSessionBadge'),codeSessionName=document.getElementById('codeSessionName'),codeSessionLogout=document.getElementById('codeSessionLogout');
+  const entryModeByRole={requester:'requester',approver:'owner',admin:'admin'};
+  const roleLabel={requester:'ผู้ขออนุมัติ',approver:'ผู้อนุมัติ',admin:'แอดมิน'};
+
   const eventCollection=()=>collection(db,'sharedEvents');
   const sharedStateDocument=()=>doc(db,'sharedAppData','team');
-  const syncRecords=async records=>{if(!currentUser||saving)return;saving=true;setStatus('☁ กำลังบันทึก...','online');try{const snapshot=await getDocs(userCollection()),batch=writeBatch(db),keep=new Set(records.map(record=>record.date));snapshot.docs.forEach(item=>{if(!keep.has(item.id))batch.delete(item.ref)});records.forEach(record=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(record.date))return;batch.set(doc(userCollection(),record.date),{ownerUid:currentUser.uid,date:record.date,payload:JSON.stringify(record),updatedAt:serverTimestamp()})});await batch.commit();setStatus(`☁ บันทึกออนไลน์แล้ว · ${currentUser.displayName||currentUser.email}`,'online')}catch(error){console.error(error);setStatus('☁ บันทึกออนไลน์ไม่สำเร็จ','error')}finally{saving=false}};
+  const accessCodeCollection=()=>collection(db,'accessCodes');
+
+  let eventUnsubscribe=null,sharedStateUnsubscribe=null,accessCodeUnsubscribe=null,eventFirstSnapshot=true,eventSaving=false,sharedStateSaving=false,sharedStateTimer=0,sharedStateFirst=true;
+  const setEventStatus=(text,state='')=>{const el=document.getElementById('eventCloudStatus');if(el){el.textContent=text;el.className=`worklog-cloud-status ${state}`.trim()}};
+
   const syncEvents=async records=>{if(eventSaving)return;eventSaving=true;setEventStatus('☁ กำลังบันทึกข้อมูลกลาง...','online');try{const batch=writeBatch(db),valid=(Array.isArray(records)?records:[]).filter(record=>record&&typeof record.id==='string'&&record.id.length<=120);valid.forEach(record=>batch.set(doc(eventCollection(),record.id),{id:record.id,payload:JSON.stringify(record),updatedAt:serverTimestamp()}));await batch.commit();setEventStatus('☁ บันทึกในฐานข้อมูลกลางแล้ว','online')}catch(error){console.error(error);setEventStatus('☁ บันทึกข้อมูลกลางไม่สำเร็จ','error')}finally{eventSaving=false}};
-  window.workLogCloud={save:syncRecords};
   window.eventCloud={save:syncEvents};
-  let sharedStateSaving=false,sharedStateTimer=0,sharedStateFirst=true;
+
   const syncSharedState=async state=>{if(sharedStateSaving||!state)return;sharedStateSaving=true;try{await setDoc(sharedStateDocument(),{id:'team',payload:JSON.stringify(state),updatedAt:serverTimestamp()});}catch(error){console.error('บันทึกข้อมูลทีมไม่สำเร็จ',error)}finally{sharedStateSaving=false}};
   window.addEventListener('quackapprove-shared-change',event=>{clearTimeout(sharedStateTimer);sharedStateTimer=setTimeout(()=>syncSharedState(event.detail||window.teamDataBridge?.read?.()),250)});
-  onSnapshot(sharedStateDocument(),async snapshot=>{if(!snapshot.exists()){if(sharedStateFirst){sharedStateFirst=false;await syncSharedState(window.teamDataBridge?.read?.()||{});}return;}sharedStateFirst=false;try{const state=JSON.parse(snapshot.data().payload||'{}');if(window.teamDataBridge?.apply?.(state))window.location.reload();}catch(error){console.error('อ่านข้อมูลทีมไม่สำเร็จ',error)}},error=>console.error('เชื่อมข้อมูลทีมไม่สำเร็จ',error));
-  login?.addEventListener('click',async()=>{try{await signInWithPopup(auth,provider)}catch(error){console.error(error);setStatus('เข้าสู่ระบบไม่สำเร็จ','error')}});
-  logout?.addEventListener('click',()=>signOut(auth));
-  eventUnsubscribe=onSnapshot(eventCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean);if(eventFirstSnapshot){eventFirstSnapshot=false;if(!records.length){const local=window.eventApp?.readRecords?.()||[];if(local.length){await syncEvents(local);return}}}window.eventApp?.applyCloudRecords?.(records);setEventStatus('☁ เชื่อมต่อฐานข้อมูลกลางแล้ว','online')},error=>{console.error(error);setEventStatus('☁ อ่านข้อมูลกลางไม่สำเร็จ','error')});
-  onAuthStateChanged(auth,user=>{currentUser=user;unsubscribe?.();unsubscribe=null;firstSnapshot=true;login.hidden=!!user;logout.hidden=!user;if(!user){setStatus('☁ ยังไม่ได้เข้าสู่ระบบ');return}setStatus(`☁ เชื่อมต่อแล้ว · ${user.displayName||user.email}`,'online');unsubscribe=onSnapshot(userCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));if(firstSnapshot){firstSnapshot=false;if(!records.length){const local=window.workLogApp?.readRecords?.()||[];if(local.length)await syncRecords(local);return}}window.workLogApp?.applyCloudRecords?.(records)},error=>{console.error(error);setStatus('☁ อ่านข้อมูลออนไลน์ไม่สำเร็จ','error')})});
+
+  window.accessCodeAdmin={
+    save:async(code,{name,role})=>{
+      const snapshot=await getDocs(accessCodeCollection());
+      const existing=snapshot.docs.find(item=>item.data().name===name&&item.id!==code);
+      if(existing)await deleteDoc(existing.ref);
+      await setDoc(doc(db,'accessCodes',code),{name,role,active:true,createdAt:serverTimestamp()},{merge:true});
+    },
+    setActive:async(code,active)=>setDoc(doc(db,'accessCodes',code),{active},{merge:true}),
+    remove:async code=>deleteDoc(doc(db,'accessCodes',code)),
+  };
+
+  const startSharedListeners=()=>{
+    if(eventUnsubscribe)return;
+    eventFirstSnapshot=true;sharedStateFirst=true;
+    eventUnsubscribe=onSnapshot(eventCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean);if(eventFirstSnapshot){eventFirstSnapshot=false;if(!records.length){const local=window.eventApp?.readRecords?.()||[];if(local.length){await syncEvents(local);return}}}window.eventApp?.applyCloudRecords?.(records);setEventStatus('☁ เชื่อมต่อฐานข้อมูลกลางแล้ว','online')},error=>{console.error(error);setEventStatus('☁ อ่านข้อมูลกลางไม่สำเร็จ','error')});
+    sharedStateUnsubscribe=onSnapshot(sharedStateDocument(),async snapshot=>{if(!snapshot.exists()){if(sharedStateFirst){sharedStateFirst=false;await syncSharedState(window.teamDataBridge?.read?.()||{});}return;}sharedStateFirst=false;try{const state=JSON.parse(snapshot.data().payload||'{}');if(window.teamDataBridge?.apply?.(state))window.location.reload();}catch(error){console.error('อ่านข้อมูลทีมไม่สำเร็จ',error)}},error=>console.error('เชื่อมข้อมูลทีมไม่สำเร็จ',error));
+  };
+  const stopSharedListeners=()=>{eventUnsubscribe?.();sharedStateUnsubscribe?.();accessCodeUnsubscribe?.();eventUnsubscribe=null;sharedStateUnsubscribe=null;accessCodeUnsubscribe=null;};
+
+  codeGateForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    codeGateError.hidden=true;
+    codeGateSubmit.disabled=true;
+    try{
+      const code=codeGateInput.value.trim();
+      const result=await verifyAccessCodeFn({code});
+      await signInWithCustomToken(auth,result.data.token);
+    }catch(error){
+      console.error(error);
+      codeGateError.textContent=error?.message||'รหัสไม่ถูกต้อง กรุณาลองใหม่';
+      codeGateError.hidden=false;
+      codeGateInput.value='';
+      codeGateInput.focus();
+    }finally{
+      codeGateSubmit.disabled=false;
+    }
+  });
+
+  codeSessionLogout.addEventListener('click',()=>{sessionStorage.removeItem('quackapprove-entry-mode');signOut(auth);});
+
+  onAuthStateChanged(auth,async user=>{
+    if(!user){
+      codeGate.hidden=false;
+      codeSessionBadge.hidden=true;
+      document.getElementById('accessCodeCard').hidden=true;
+      stopSharedListeners();
+      return;
+    }
+    const tokenResult=await user.getIdTokenResult();
+    const role=tokenResult.claims.role;
+    if(!role){codeGate.hidden=false;return;}
+    const name=tokenResult.claims.name||'';
+    codeGate.hidden=true;
+    codeSessionBadge.hidden=false;
+    codeSessionName.textContent=`${name||'ผู้ใช้'} · ${roleLabel[role]||role}`;
+    const entryButton=document.querySelector(`[data-entry-mode="${entryModeByRole[role]||'requester'}"]`);
+    entryButton?.click();
+    startSharedListeners();
+    if(role==='admin'){
+      document.getElementById('accessCodeCard').hidden=false;
+      accessCodeUnsubscribe=onSnapshot(accessCodeCollection(),snapshot=>{window.renderAccessCodes?.(snapshot.docs.map(item=>({code:item.id,...item.data()})));},error=>console.error('อ่านรหัสเข้าใช้งานไม่สำเร็จ',error));
+    }
+  });
+
+  // ---------- Google sign-in (private hourly work log only) ----------
+  const status=document.getElementById('worklogCloudStatus'),login=document.getElementById('worklogCloudLogin'),logout=document.getElementById('worklogCloudLogout');
+  let currentUser=null,unsubscribe=null,firstSnapshot=true,saving=false;
+  const setStatus=(text,state='')=>{status.textContent=text;status.className=`worklog-cloud-status ${state}`.trim()};
+  const userCollection=()=>collection(worklogDb,'users',currentUser.uid,'workLogs');
+  const syncRecords=async records=>{if(!currentUser||saving)return;saving=true;setStatus('☁ กำลังบันทึก...','online');try{const snapshot=await getDocs(userCollection()),batch=writeBatch(worklogDb),keep=new Set(records.map(record=>record.date));snapshot.docs.forEach(item=>{if(!keep.has(item.id))batch.delete(item.ref)});records.forEach(record=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(record.date))return;batch.set(doc(userCollection(),record.date),{ownerUid:currentUser.uid,date:record.date,payload:JSON.stringify(record),updatedAt:serverTimestamp()})});await batch.commit();setStatus(`☁ บันทึกออนไลน์แล้ว · ${currentUser.displayName||currentUser.email}`,'online')}catch(error){console.error(error);setStatus('☁ บันทึกออนไลน์ไม่สำเร็จ','error')}finally{saving=false}};
+  window.workLogCloud={save:syncRecords};
+  login?.addEventListener('click',async()=>{try{await signInWithPopup(worklogAuth,provider)}catch(error){console.error(error);setStatus('เข้าสู่ระบบไม่สำเร็จ','error')}});
+  logout?.addEventListener('click',()=>signOut(worklogAuth));
+  onAuthStateChanged(worklogAuth,user=>{currentUser=user;unsubscribe?.();unsubscribe=null;firstSnapshot=true;login.hidden=!!user;logout.hidden=!user;if(!user){setStatus('☁ ยังไม่ได้เข้าสู่ระบบ');return}setStatus(`☁ เชื่อมต่อแล้ว · ${user.displayName||user.email}`,'online');unsubscribe=onSnapshot(userCollection(),async snapshot=>{const records=snapshot.docs.map(item=>{try{return JSON.parse(item.data().payload)}catch{return null}}).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));if(firstSnapshot){firstSnapshot=false;if(!records.length){const local=window.workLogApp?.readRecords?.()||[];if(local.length)await syncRecords(local);return}}window.workLogApp?.applyCloudRecords?.(records)},error=>{console.error(error);setStatus('☁ อ่านข้อมูลออนไลน์ไม่สำเร็จ','error')})});
 </script>
 </body>
 </html>
