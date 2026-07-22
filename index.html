@@ -3156,23 +3156,25 @@
     });
   });
 
-  // Spending dashboard
-  const spendingRecords = [
-    {expense:'ส่งเสริมการขาย / ของพรีเมียม',company:'Play Along Studio',branch:'Bloom 41',amount:100000,status:'approved',date:'2026-01-10'},
-    {expense:'ส่งเสริมการขาย / ของพรีเมียม',company:'Bloom Team',branch:'Bloom 65',amount:36000,status:'approved',date:'2026-03-12'},
-    {expense:'ส่งเสริมการขาย / ของพรีเมียม',company:'Event Partner',branch:'Event Bloom',amount:19400,status:'approved',date:'2026-07-10'},
-    ...Array.from({length:19},(_,i)=>({expense:'Influencer - Rate Card',company:i%2?'Creator Network':'Influencer Studio',branch:i%3?'Bloom 41':'Pancake Cafe',amount:i===18?8800:6000,status:i===17?'pending':'approved',date:`2026-${String(i%7+1).padStart(2,'0')}-${String(i%26+1).padStart(2,'0')}`})),
-    {expense:'ค่าโฆษณา',company:'Meta',branch:'Bloom 41',amount:3000,status:'approved',date:'2026-04-11'},
-    {expense:'ค่าโฆษณา',company:'TikTok',branch:'Pancake Cafe',amount:2000,status:'approved',date:'2026-05-18'},
-    {expense:'ค่าโฆษณา',company:'Google',branch:'Bloom 65',amount:997,status:'pending',date:'2026-07-02'},
-    {expense:'อุปกรณ์สิ้นเปลือง',company:'Office Mart',branch:'Bloom 41',amount:89,status:'approved',date:'2026-02-09'},
-    {expense:'อุปกรณ์สิ้นเปลือง',company:'Office Mart',branch:'Bloom 65',amount:100,status:'approved',date:'2026-06-21'},
-    ...Array.from({length:5},(_,i)=>({expense:'Influencer - Barter',company:`Barter Creator ${i+1}`,branch:'Pancake Cafe',amount:0,status:'approved',date:`2026-07-${String(i+1).padStart(2,'0')}`}))
-  ];
-  spendingRecords.length=0;
-  spendingRecords.forEach((row,index)=>{row.pr=row.pr||`PR-${String(1001+index).padStart(4,'0')}`;row.detail=row.detail||(row.expense.includes('Influencer')?`งานรีวิวคอนเทนต์โดย ${row.company} สำหรับ ${row.branch}`:row.expense==='ค่าโฆษณา'?`ค่าโฆษณาแคมเปญประจำเดือนของ ${row.branch}`:row.expense==='อุปกรณ์สิ้นเปลือง'?`จัดซื้ออุปกรณ์ใช้งานสำหรับ ${row.branch}`:`งานส่งเสริมการขายและของพรีเมียมสำหรับ ${row.branch}`);});
+  // Spending dashboard - pulls live data straight from ฐานข้อมูล (the
+  // approved-request database) plus BARTER ค่าอาหาร food-allowance records,
+  // so it always reflects the real approved PRs instead of static demo data.
+  // (Barter ค่าอาหาร is intentionally excluded from the Budget Overview
+  // monthly breakdown above and only surfaced here, per user request.)
   const spendLabel={expense:'ประเภทค่าใช้จ่าย',company:'Company',branch:'สาขา'};
-  function getSpendingFiltered(){ const status=document.getElementById('spendStatus')?.value||'all',from=document.getElementById('spendFrom')?.value,to=document.getElementById('spendTo')?.value; return spendingRecords.filter(row=>(status==='all'||row.status===status)&&(!from||row.date>=from)&&(!to||row.date<=to)); }
+  function getSpendingRecords(){
+    return dynamicBudgetRecords().map(row=>({
+      pr:row.pr,
+      expense:row.expense,
+      company:row.company,
+      branch:row.branch,
+      detail:row.detail,
+      amount:row.amount,
+      status:'approved',
+      date:`${row.year}-${String(row.month+1).padStart(2,'0')}-01`,
+    }));
+  }
+  function getSpendingFiltered(){ const status=document.getElementById('spendStatus')?.value||'all',from=document.getElementById('spendFrom')?.value,to=document.getElementById('spendTo')?.value; return getSpendingRecords().filter(row=>(status==='all'||row.status===status)&&(!from||row.date>=from)&&(!to||row.date<=to)); }
   function getSpendingGroups(){ const key=document.getElementById('spendGroup')?.value||'expense', rows=getSpendingFiltered(), grouped={}; rows.forEach(row=>{const name=row[key]||'ไม่ระบุ'; grouped[name]??={name,count:0,amount:0,items:[]}; grouped[name].count++; grouped[name].amount+=row.amount;grouped[name].items.push(row);}); return Object.values(grouped).sort((a,b)=>b.amount-a.amount); }
   function renderSpendingDashboard(){
     if(!document.getElementById('spendTableBody'))return; const rows=getSpendingFiltered(),groups=getSpendingGroups(),total=budgetSum(rows.map(row=>row.amount)),key=document.getElementById('spendGroup').value;
@@ -3183,6 +3185,7 @@
   document.getElementById('spendTableBody')?.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target.matches('[data-spend-detail]')){event.preventDefault();event.target.click();}});
   ['spendGroup','spendStatus','spendFrom','spendTo'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderSpendingDashboard));
   document.getElementById('spendClear')?.addEventListener('click',()=>{document.getElementById('spendFrom').value='';document.getElementById('spendTo').value='';renderSpendingDashboard();});
+  document.querySelector('[data-nav="budget-dashboard"]')?.addEventListener('click',renderSpendingDashboard);
   document.getElementById('spendPrint')?.addEventListener('click',()=>window.print());
   document.getElementById('spendCsv')?.addEventListener('click',()=>{const groups=getSpendingGroups(),key=document.getElementById('spendGroup').value,csv=['กลุ่ม,จำนวน,ยอดรวม',...groups.map(row=>`"${row.name}",${row.count},${row.amount}`)].join('\n');downloadAppFile('\ufeff'+csv,`spending-${key}.csv`);});
 
