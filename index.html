@@ -1186,8 +1186,7 @@
       <div class="nav-group-label boss-upcoming-only">ภาพรวมเจ้านาย</div>
       <div class="nav-item boss-upcoming-only" data-nav="boss-upcoming"><span class="nav-icon">🔔</span><span class="nav-label">กำลังจะมาถึง</span></div>
       <div class="nav-group-label">งานของฉัน</div>
-      <div class="nav-item" data-nav="my-job"><span class="nav-icon">✓</span><span class="nav-label">My Project</span></div>
-      <div class="nav-item" data-nav="my-job-archive"><span class="nav-icon">▣</span><span class="nav-label">คลังงาน</span><span class="gallery-notification" id="myjobArchiveBadge" hidden>0</span></div>
+      <div class="nav-item" data-nav="my-job"><span class="nav-icon">▣</span><span class="nav-label">คลังงาน</span></div>
 
       <div class="nav-group-label">คอนเทนต์</div>
       <div class="nav-item active" data-nav="home"><span class="nav-icon">▦</span><span class="nav-label">หน้าแรก</span></div>
@@ -3344,7 +3343,7 @@
     const headEl=document.getElementById('myjobArchiveTableHead'),grid=document.getElementById('myjobArchiveGrid'),searchInput=document.getElementById('myjobArchiveSearch'),groupSelect=document.getElementById('myjobArchiveGroup');if(!grid||!searchInput||!groupSelect)return;
     const selected=groupSelect.value||'all';groupSelect.innerHTML='<option value="all">ทุกกรุ๊ป</option>'+myjobGroups.map(group=>`<option value="${myjobEsc(group)}">${myjobEsc(group)}</option>`).join('');groupSelect.value=myjobGroups.includes(selected)?selected:'all';
     const search=searchInput.value.trim().toLowerCase(),group=groupSelect.value;const completed=myjobTasks.filter(task=>{const taskGroup=(task.group||'Content').trim()||'Content';return task.status==='done'&&(group==='all'||taskGroup===group)&&(!search||`${task.title||''} ${task.description||''} ${task.remark||''}`.toLowerCase().includes(search));});
-    const badge=document.getElementById('myjobArchiveBadge');badge.textContent=myjobTasks.filter(task=>task.status==='done').length;badge.hidden=!Number(badge.textContent);
+    const badge=document.getElementById('myjobArchiveBadge');if(badge){badge.textContent=myjobTasks.filter(task=>task.status==='done').length;badge.hidden=!Number(badge.textContent);}
     if(typeof myjobBuildHeadHtml==='function'&&headEl)headEl.innerHTML=myjobBuildHeadHtml();
     if(typeof myjobBuildRowHtml!=='function')return;
     grid.innerHTML=completed.length?completed.map(myjobBuildRowHtml).join(''):`<tr><td colspan="${myjobMeta.columns.length+1}" class="content-project-empty">ยังไม่มีงานในคลัง — งานที่เปลี่ยนสถานะเป็น “เสร็จแล้ว” จะเข้ามาอยู่ที่นี่อัตโนมัติ</td></tr>`;
@@ -3385,7 +3384,7 @@
   myjobGrid.addEventListener('click',handleMyjobTableClick);myjobGrid.addEventListener('change',handleMyjobInline);
   myjobGrid.addEventListener('dragstart',event=>{if(event.target.closest('input,select,button')){event.preventDefault();return;}const row=event.target.closest('[data-myjob-task]');if(row){myjobDragId=row.dataset.myjobTask;row.classList.add('dragging');}});myjobGrid.addEventListener('dragend',event=>{event.target.closest('.myjob-row')?.classList.remove('dragging');myjobDragId=null;});myjobGrid.addEventListener('dragover',event=>event.preventDefault());myjobGrid.addEventListener('drop',event=>{event.preventDefault();const target=event.target.closest('[data-myjob-task]');if(!target||!myjobDragId||target.dataset.myjobTask===myjobDragId)return;const from=myjobTasks.findIndex(task=>task.id===myjobDragId),to=myjobTasks.findIndex(task=>task.id===target.dataset.myjobTask);const [moved]=myjobTasks.splice(from,1);myjobTasks.splice(to,0,moved);document.getElementById('myjobSort').value='custom';myjobSave();renderMyjob();});
   const myjobViewIcon={table:'▦',board:'▤',gallery:'▦',list:'☷',chart:'◔',dashboard:'▦',timeline:'▥',feed:'▤',map:'⌑',calendar:'▣',form:'☑'};
-  const getMyjobVisibleTasks=()=>{const groupFilter=document.getElementById('myjobGroupFilter'),search=document.getElementById('myjobSearch').value.trim().toLowerCase(),status=document.getElementById('myjobStatusFilter').value,sort=document.getElementById('myjobSort').value,activeGroup=groupFilter.value;let tasks=myjobTasks.filter(task=>task.status!=='done'&&(!search||`${task.title||''} ${task.description||''} ${task.remark||''}`.toLowerCase().includes(search))&&(activeGroup==='all'||(task.group||'Content')===activeGroup)&&(status==='all'||task.status===status));if(sort==='due')tasks=[...tasks].sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));return tasks};
+  const getMyjobVisibleTasks=()=>{const groupFilter=document.getElementById('myjobGroupFilter'),search=document.getElementById('myjobSearch').value.trim().toLowerCase(),status=document.getElementById('myjobStatusFilter').value,sort=document.getElementById('myjobSort').value,activeGroup=groupFilter.value;let tasks=myjobTasks.filter(task=>(!search||`${task.title||''} ${task.description||''} ${task.remark||''}`.toLowerCase().includes(search))&&(activeGroup==='all'||(task.group||'Content')===activeGroup)&&(status==='all'||task.status===status));if(sort==='due')tasks=[...tasks].sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));return tasks};
   // Content name เป็น textarea ที่ห่อบรรทัดเองเมื่อข้อความยาว แทนที่ input บรรทัดเดียวที่ตัดข้อความทิ้ง
   function myjobAutosizeTitle(el){el.style.height='auto';el.style.height=(el.scrollHeight+2)+'px';}
   function myjobAutosizeAllTitles(){
