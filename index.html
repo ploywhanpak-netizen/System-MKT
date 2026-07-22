@@ -1474,6 +1474,15 @@
       localStorage.removeItem('quackapprove-events');
       localStorage.setItem(eventResetVersion,'done');
     }
+    // One-time cleanup: a bug in the "remember dragged column order" feature could
+    // desync table headers from their data on every re-render. Wipe any saved
+    // order once so affected browsers snap back to the correct default layout.
+    const columnOrderResetVersion='quackapprove-column-order-reset-2026-07-22-v1';
+    if(!localStorage.getItem(columnOrderResetVersion)){
+      localStorage.removeItem('quackapprove-column-order-influencer-work');
+      localStorage.removeItem('quackapprove-column-order-influencer-performance');
+      localStorage.setItem(columnOrderResetVersion,'done');
+    }
   })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -3258,7 +3267,7 @@
     const dynamicRecords=dynamicBudgetRecords().filter(row=>row.year===budgetYear),dynamicMonths=Array.from({length:12},(_,month)=>budgetSum(dynamicRecords.filter(row=>row.month===month).map(row=>row.amount))),rate=Number(document.getElementById('marketingPercent').value||0), allowance=totalTarget*rate/100, used=budgetSum(dynamicMonths), remaining=Math.max(0,allowance-used);
     document.getElementById('marketingBudget').textContent=budgetMoney(allowance); document.getElementById('marketingSpent').textContent=budgetMoney(used); document.getElementById('marketingRemaining').textContent=budgetMoney(remaining); document.getElementById('marketingProgress').style.width=`${allowance?Math.min(100,used/allowance*100):0}%`;
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; let cumulative=0;
-    document.getElementById('budgetMonthList').innerHTML='<div class="budget-month-header"><span>เดือน</span><span style="text-align:right">งบ/เดือน</span><span style="text-align:right">ใช้ไปเดือนนี้</span><span style="text-align:right">ใช้ได้อีกเดือนนี้</span><span style="text-align:right">สะสมคงเหลือ/เกิน</span></div>'+months.map((month,i)=>{ const monthlyAllowance=allowance/12,used=dynamicMonths[i],usedPercent=monthlyAllowance?used/monthlyAllowance*100:0,left=monthlyAllowance-used,leftPercent=monthlyAllowance?left/monthlyAllowance*100:0;cumulative+=used;const cumulativeAllowance=monthlyAllowance*(i+1),cumulativeLeft=cumulativeAllowance-cumulative,cumulativeLeftPercent=cumulativeAllowance?cumulativeLeft/cumulativeAllowance*100:0,monthRecords=dynamicRecords.filter(row=>row.month===i);const detail=monthRecords.length?monthRecords.map(row=>`<div class="budget-detail-row"><b>${budgetEscape(row.pr)}</b><span>${budgetEscape(row.branch)}</span><span>${budgetEscape(row.detail)} · ${budgetEscape(row.expense)}</span><b>${budgetMoney(row.amount)}</b></div>`).join(''):'<div class="budget-detail-row"><span>–</span><span></span><span>ยังไม่มีรายการในเดือนนี้</span><b>฿ 0.00</b></div>'; return `<div class="budget-accordion"><button class="budget-accordion-button monthly" data-budget-toggle="budget-month-${i}"><span>▸ <b>${month} ${budgetYear}</b></span><span><b class="budget-month-value">${budgetMoney(monthlyAllowance)}</b></span><span><b class="budget-month-value">${budgetMoney(used)}</b><small class="budget-month-sub">ใช้ไปแล้ว ${usedPercent.toFixed(1)}%</small></span><span><b class="budget-month-value green">${budgetMoney(left)}</b><small class="budget-month-sub green">${leftPercent.toFixed(1)}% ของงบเดือนนี้</small></span><span><b class="budget-month-value ${cumulativeLeft>=0?'green':''}">${budgetMoney(cumulativeLeft)}</b><small class="budget-month-sub ${cumulativeLeft>=0?'green':''}">${cumulativeLeft>=0?'ใช้ได้อีก':'เกินงบ'} ${Math.abs(cumulativeLeftPercent).toFixed(1)}%</small></span></button><div id="budget-month-${i}" class="budget-accordion-detail" hidden>${detail}</div></div>`; }).join('');
+    document.getElementById('budgetMonthList').innerHTML='<div class="budget-month-header"><span>เดือน</span><span style="text-align:right">งบ/เดือน</span><span style="text-align:right">ใช้ไปเดือนนี้</span><span style="text-align:right">ใช้ได้อีกเดือนนี้</span><span style="text-align:right">สะสมคงเหลือ/เกิน</span></div>'+months.map((month,i)=>{ const monthlyAllowance=allowance/12,used=dynamicMonths[i],usedPercent=monthlyAllowance?used/monthlyAllowance*100:0,left=monthlyAllowance-used,leftPercent=monthlyAllowance?left/monthlyAllowance*100:0;cumulative+=used;const cumulativeAllowance=monthlyAllowance*(i+1),cumulativeLeft=cumulativeAllowance-cumulative,cumulativeLeftPercent=cumulativeAllowance?cumulativeLeft/cumulativeAllowance*100:0,monthRecords=dynamicRecords.filter(row=>row.month===i);const detail=monthRecords.length?monthRecords.map(row=>{const supplierPrefix=row.company&&row.company!=='—'?`${budgetEscape(row.company)} / `:'';return `<div class="budget-detail-row"><b>${budgetEscape(row.pr)}</b><span>${budgetEscape(row.branch)}</span><span>${supplierPrefix}${budgetEscape(row.detail)} · ${budgetEscape(row.expense)}</span><b>${budgetMoney(row.amount)}</b></div>`;}).join(''):'<div class="budget-detail-row"><span>–</span><span></span><span>ยังไม่มีรายการในเดือนนี้</span><b>฿ 0.00</b></div>'; return `<div class="budget-accordion"><button class="budget-accordion-button monthly" data-budget-toggle="budget-month-${i}"><span>▸ <b>${month} ${budgetYear}</b></span><span><b class="budget-month-value">${budgetMoney(monthlyAllowance)}</b></span><span><b class="budget-month-value">${budgetMoney(used)}</b><small class="budget-month-sub">ใช้ไปแล้ว ${usedPercent.toFixed(1)}%</small></span><span><b class="budget-month-value green">${budgetMoney(left)}</b><small class="budget-month-sub green">${leftPercent.toFixed(1)}% ของงบเดือนนี้</small></span><span><b class="budget-month-value ${cumulativeLeft>=0?'green':''}">${budgetMoney(cumulativeLeft)}</b><small class="budget-month-sub ${cumulativeLeft>=0?'green':''}">${cumulativeLeft>=0?'ใช้ได้อีก':'เกินงบ'} ${Math.abs(cumulativeLeftPercent).toFixed(1)}%</small></span></button><div id="budget-month-${i}" class="budget-accordion-detail" hidden>${detail}</div></div>`; }).join('');
     const categoryMap={};dynamicRecords.forEach(row=>{categoryMap[row.expense]??={name:row.expense,amount:0,items:[]};categoryMap[row.expense].amount+=row.amount;categoryMap[row.expense].items.push([row.pr,row.company,row.detail,row.amount]);});const dynamicCategories=Object.values(categoryMap).sort((a,b)=>b.amount-a.amount);
     document.getElementById('budgetCategoryList').innerHTML=dynamicCategories.map((category,i)=>`<div class="budget-accordion"><button class="budget-accordion-button budget-category-button" data-budget-toggle="budget-category-${i}"><span>▸ <b>${budgetEscape(category.name)}</b></span><span>${category.items.length} รายการ</span><strong>${budgetMoney(category.amount)}</strong></button><div id="budget-category-${i}" class="budget-accordion-detail" hidden>${category.items.map(item=>`<div class="budget-detail-row"><b>${budgetEscape(item[0])}</b><span>${budgetEscape(item[1])}</span><span>${budgetEscape(item[2])}</span><b>${budgetMoney(item[3])}</b></div>`).join('')}</div></div>`).join('');
   }
@@ -3286,6 +3295,25 @@
   document.getElementById('budgetBranchBody')?.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.matches('[data-budget-target]')){event.preventDefault();document.getElementById('budgetEditTargets')?.click();}});
   document.addEventListener('click',event=>{ const button=event.target.closest('[data-budget-toggle]'); if(!button)return; const detail=document.getElementById(button.dataset.budgetToggle); if(detail) detail.hidden=!detail.hidden; });
   window.budgetReady=true;
+  // One-time cleanup requested 2026-07-22: many PR rows in ฐานข้อมูล had never
+  // had their default "PR-1041" placeholder changed, so lots of unrelated
+  // requests all shared the same PR number. Renumber every row once, in order
+  // of Project Duration (earliest first = PR-1), so each PR is unique.
+  (()=>{
+    const prRenumberVersion='quackapprove-pr-renumber-2026-07-22-v1';
+    if(localStorage.getItem(prRenumberVersion))return;
+    if(approvedDatabaseBody){
+      const entries=Array.from(approvedDatabaseBody.rows).map((row,index)=>({row,index,period:budgetPeriod(row.dataset.duration||row.dataset.date)}));
+      entries.sort((a,b)=>a.period.year-b.period.year||a.period.month-b.period.month||a.index-b.index);
+      entries.forEach((entry,position)=>{
+        const newPr=`PR-${position+1}`;
+        entry.row.dataset.pr=newPr;
+        if(entry.row.cells[1])entry.row.cells[1].textContent=newPr;
+      });
+      saveApprovedDatabase();
+    }
+    localStorage.setItem(prRenumberVersion,'done');
+  })();
   renderBudget();
   renderSpendingDashboard();
 
