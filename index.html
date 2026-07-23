@@ -1214,6 +1214,7 @@
 
       <div class="nav-group-label">บันทึกการทำงาน</div>
       <div class="nav-item" data-nav="work-log"><span class="nav-icon">📝</span><span class="nav-label">บันทึกงานรายชั่วโมง</span></div>
+      <div class="nav-item" data-nav="daily-topic-log"><span class="nav-icon">🗒</span><span class="nav-label">บันทึกงานวันนี้</span></div>
 
       <div class="nav-group-label">Setting</div>
       <div class="nav-item" data-nav="settings"><span class="nav-icon">⚙</span><span class="nav-label">ตั้งค่า</span></div>
@@ -1449,6 +1450,23 @@
       <p class="worklog-note">ข้อมูลบันทึกในเครื่องเสมอ และซิงก์กับ Firebase อัตโนมัติเมื่อเข้าสู่ระบบ Google</p>
     </section>
     <template id="worklogDayTemplate"><article class="worklog-day"><header><label>วันที่ <input class="worklog-date" type="date"></label><div class="worklog-day-actions"><button type="button" class="worklog-add-column">＋ เพิ่มงาน</button><button type="button" class="worklog-delete">ลบวันนี้</button></div></header><div class="worklog-table-wrap"><table><thead><tr><th>วันที่</th><th>เวลา</th></tr></thead><tbody></tbody></table></div></article></template>
+
+    <section data-page="daily-topic-log" class="settings-page">
+      <div class="settings-head"><h1>บันทึกงานวันนี้</h1><p>บันทึก Topic ที่คุยงานในแต่ละวัน พร้อมรายละเอียด/บันทึกเพิ่มเติม</p></div>
+      <div class="settings-card">
+        <form id="topicLogForm" class="approver-add">
+          <input id="topicLogDate" type="date" required aria-label="วันที่">
+          <input id="topicLogTitle" required placeholder="Topic ที่คุยงาน" aria-label="Topic ที่คุยงาน">
+          <input id="topicLogDetail" placeholder="รายละเอียด/บันทึกเพิ่มเติม (ไม่บังคับ)" aria-label="รายละเอียด/บันทึกเพิ่มเติม">
+          <button type="submit">＋ บันทึก</button>
+        </form>
+        <table class="approver-table">
+          <thead><tr><th style="width:150px">วันที่</th><th style="width:260px">Topic</th><th>รายละเอียด/บันทึกเพิ่มเติม</th><th style="width:70px">จัดการ</th></tr></thead>
+          <tbody id="topicLogBody"></tbody>
+        </table>
+        <div class="approver-note" id="topicLogEmpty">ยังไม่มีบันทึกงานวันนี้ — กรอกฟอร์มด้านบนแล้วกด บันทึก</div>
+      </div>
+    </section>
 
     <section data-page="budget-dashboard">
       <header class="spend-head"><h1>แดชบอร์ดการใช้เงิน</h1><p>สรุปยอดใช้จ่ายจากใบคำขอ แยกตามคอลัมน์ที่เลือก (เช่น Code, ประเภทค่าใช้จ่าย, Company)</p></header>
