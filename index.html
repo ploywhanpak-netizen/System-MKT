@@ -1528,6 +1528,52 @@
       localStorage.removeItem('quackapprove-column-order-influencer-performance');
       localStorage.setItem(columnOrderResetVersion,'done');
     }
+    // One-time migration requested 2026-07-23: move every task currently in
+    // คลังงาน (My Project) over to บันทึกงานวันนี้ (daily topic log), then clear
+    // คลังงาน since the data now lives on the new page.
+    const myjobToTopicLogVersion='quackapprove-myjob-to-topiclog-2026-07-23-v1';
+    if(!localStorage.getItem(myjobToTopicLogVersion)){
+      try{
+        const myjobTasksRaw=JSON.parse(localStorage.getItem('quackapprove-myjob-tasks')||'[]');
+        const myjobTasksList=Array.isArray(myjobTasksRaw)?myjobTasksRaw:[];
+        if(myjobTasksList.length){
+          let myjobStatusList=[];
+          try{myjobStatusList=JSON.parse(localStorage.getItem('quackapprove-myjob-statuses')||'[]')||[];}catch(_){myjobStatusList=[];}
+          if(!Array.isArray(myjobStatusList))myjobStatusList=[];
+          const myjobStatusLabelById=id=>myjobStatusList.find(status=>status.id===id)?.label||'';
+          let topicEntries=[];
+          try{topicEntries=JSON.parse(localStorage.getItem('quackapprove-daily-topics')||'[]')||[];}catch(_){topicEntries=[];}
+          if(!Array.isArray(topicEntries))topicEntries=[];
+          let topicStatusList=[];
+          try{topicStatusList=JSON.parse(localStorage.getItem('quackapprove-daily-topics-statuses')||'[]')||[];}catch(_){topicStatusList=[];}
+          if(!Array.isArray(topicStatusList))topicStatusList=[];
+          const topicPalette=['#238d83','#c69300','#5e91bc','#d65858','#7a69b7','#2e9e5b','#c2569c','#4c7b9e'];
+          const topicStatusIdByLabel=label=>{
+            const clean=String(label||'').trim();
+            if(!clean)return '';
+            let match=topicStatusList.find(status=>status.label===clean);
+            if(!match){match={id:`status-${Date.now()}-${Math.floor(Math.random()*1000)}`,label:clean,color:topicPalette[topicStatusList.length%topicPalette.length]};topicStatusList.push(match);}
+            return match.id;
+          };
+          const migrated=myjobTasksList.map(task=>{
+            const detailParts=[task.description,task.remark].map(value=>String(value||'').trim()).filter(Boolean);
+            return {
+              date:task.due||'',
+              time:'',
+              title:task.title||'',
+              project:task.group||'',
+              detail:detailParts.join('\n\n'),
+              status:topicStatusIdByLabel(myjobStatusLabelById(task.status)),
+            };
+          });
+          topicEntries=[...migrated,...topicEntries];
+          localStorage.setItem('quackapprove-daily-topics',JSON.stringify(topicEntries));
+          localStorage.setItem('quackapprove-daily-topics-statuses',JSON.stringify(topicStatusList));
+          localStorage.setItem('quackapprove-myjob-tasks','[]');
+        }
+      }catch(error){console.warn('โยกข้อมูลคลังงานไปบันทึกงานวันนี้ไม่สำเร็จ',error);}
+      localStorage.setItem(myjobToTopicLogVersion,'done');
+    }
   })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -3813,6 +3859,14 @@
     entry.title=detailTopicInput.value.trim();
     entry.project=detailProjectInput.value.trim();
     entry.detail=detailDetailInput.value.trim();
+    save();render();
+    closeDetail();
+  });
+  document.getElementById('topicLogDetailDelete')?.addEventListener('click',()=>{
+    const entry=entries[activeTopicIndex];
+    if(!entry)return;
+    if(!confirm(`ลบบันทึก "${entry.title||entry.project||entry.detail||'รายการนี้'}" ใช่หรือไม่?`))return;
+    entries.splice(activeTopicIndex,1);
     save();render();
     closeDetail();
   });
