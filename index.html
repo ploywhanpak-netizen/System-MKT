@@ -3780,12 +3780,22 @@
   const topicStatusId=text=>{const label=String(text||'').trim();if(!label)return '';let status=topicStatuses.find(item=>item.label===label);if(!status){status={id:`status-${Date.now()}-${Math.floor(Math.random()*1000)}`,label,color:statusPalette[topicStatuses.length%statusPalette.length]};topicStatuses.push(status);saveStatuses();}return status.id;};
   function filteredEntries(){
     const query=(searchInput?.value||'').trim().toLowerCase(),month=monthFilter?.value??'',year=Number(yearFilter?.value)||0;
-    return entries.filter(entry=>{
+    const rows=entries.filter(entry=>{
       if(query&&!`${entry.title||''} ${entry.project||''} ${entry.detail||''}`.toLowerCase().includes(query))return false;
       const date=entry.date?new Date(entry.date+'T00:00:00'):null;
       if(month!==''&&(!date||date.getMonth()!==Number(month)))return false;
       if(year&&(!date||date.getFullYear()!==year))return false;
       return true;
+    });
+    // ตั้งค่าเริ่มต้น: เรียงจากวันที่/เวลาล่าสุดไปเก่าสุด (รายการที่ไม่ระบุวันที่ไปอยู่ท้ายสุด)
+    // เรียงบน entry.date แบบ ISO (YYYY-MM-DD) โดยตรง แทนข้อความที่แสดงในตาราง
+    // (DD/MM/YYYY) เพื่อให้เรียงถูกต้องตามเวลาจริง ไม่ใช่แค่เรียงตัวอักษร
+    return rows.slice().sort((a,b)=>{
+      if(!a.date&&!b.date)return 0;
+      if(!a.date)return 1;
+      if(!b.date)return -1;
+      const keyA=`${a.date} ${a.time||'00:00'}`,keyB=`${b.date} ${b.time||'00:00'}`;
+      return keyB.localeCompare(keyA);
     });
   }
   function render(){
