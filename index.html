@@ -1422,7 +1422,7 @@
     <section data-page="budget-overview">
       <div class="budget-head">
         <div><h1>Budget Overview</h1><p>เป้าของแต่ละสาขา งบที่ใช้ไป และงบที่เหลือ — กรองเป้าและยอดอนุมัติรายเดือน Jan – Dec</p></div>
-        <div class="budget-controls"><label>เลือกสาขา <select id="budgetBranch"><option value="all">ทั้งหมด (ทุกสาขา)</option><option>Bloom 41</option><option>Bloom 65</option><option>Event Bloom</option><option>Pancake Cafe</option></select></label><button id="budgetPrevYear" aria-label="ปีก่อน">‹</button><button id="budgetYearLabel">2026 / 2569</button><button id="budgetNextYear" aria-label="ปีถัดไป">›</button></div>
+        <div class="budget-controls"><label>เลือกสาขา <select id="budgetBranch"><option value="all">ทั้งหมด (ทุกสาขา)</option><option>Pancake Cafe</option><option>Bloom 41</option><option>Bloom 65</option><option>Event Bloom</option></select></label><button id="budgetPrevYear" aria-label="ปีก่อน">‹</button><button id="budgetYearLabel">2026 / 2569</button><button id="budgetNextYear" aria-label="ปีถัดไป">›</button></div>
       </div>
       <div class="budget-summary">
         <article class="budget-summary-card"><label>เป้า (รวมทุกช่องทาง)</label><strong id="budgetTarget">฿ 0.00</strong></article>
@@ -3288,12 +3288,12 @@
   document.getElementById('spendCsv')?.addEventListener('click',()=>{const groups=getSpendingGroups(),key=document.getElementById('spendGroup').value,csv=['กลุ่ม,จำนวน,ยอดรวม',...groups.map(row=>`"${row.name}",${row.count},${row.amount}`)].join('\n');downloadAppFile('\ufeff'+csv,`spending-${key}.csv`);});
 
   // Budget Overview
-  const budgetTargets = {'Bloom 41':16800000,'Bloom 65':6600000,'Event Bloom':0,'Pancake Cafe':24000000};
+  const budgetTargets = {'Pancake Cafe':24000000,'Bloom 41':16800000,'Bloom 65':6600000,'Event Bloom':0};
   const budgetMonthly = {
+    'Pancake Cafe':[2343993,2269833,2215240,1946802,2176119,0,0,0,0,0,0,0],
     'Bloom 41':[1495760,1298085,1349964,1409931,0,0,0,0,0,0,0,0],
     'Bloom 65':[610966,541844,0,0,0,0,0,0,0,0,0,0],
-    'Event Bloom':[0,373825,0,308735,718131,0,0,0,0,0,0,0],
-    'Pancake Cafe':[2343993,2269833,2215240,1946802,2176119,0,0,0,0,0,0,0]
+    'Event Bloom':[0,373825,0,308735,718131,0,0,0,0,0,0,0]
   };
   Object.keys(budgetTargets).forEach(branch=>budgetTargets[branch]=0);
   Object.keys(budgetMonthly).forEach(branch=>budgetMonthly[branch]=budgetMonthly[branch].map(()=>0));
