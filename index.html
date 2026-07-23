@@ -3778,6 +3778,11 @@
   const saveStatuses=()=>localStorage.setItem(statusesKey,JSON.stringify(topicStatuses));
   const statusById=id=>topicStatuses.find(status=>status.id===id);
   const topicStatusId=text=>{const label=String(text||'').trim();if(!label)return '';let status=topicStatuses.find(item=>item.label===label);if(!status){status={id:`status-${Date.now()}-${Math.floor(Math.random()*1000)}`,label,color:statusPalette[topicStatuses.length%statusPalette.length]};topicStatuses.push(status);saveStatuses();}return status.id;};
+  // สถานะเริ่มต้น: รายการที่ยังไม่ได้ตั้งสถานะ ให้ถือว่าเป็น "ยังไม่เริ่ม" โดยอัตโนมัติ
+  const defaultStatusId=()=>topicStatuses.find(status=>status.label==='ยังไม่เริ่ม')?.id||topicStatuses[0]?.id||'';
+  let statusBackfilled=false;
+  entries.forEach(entry=>{if(!entry.status){entry.status=defaultStatusId();statusBackfilled=true;}});
+  if(statusBackfilled)save();
   function filteredEntries(){
     const query=(searchInput?.value||'').trim().toLowerCase(),month=monthFilter?.value??'',year=Number(yearFilter?.value)||0;
     const rows=entries.filter(entry=>{
@@ -3815,7 +3820,7 @@
     event.preventDefault();
     const date=dateInput.value,time=timeInput.value,title=titleInput.value.trim(),project=projectInput.value.trim(),detail=detailInput.value.trim();
     if(!date&&!time&&!title&&!project&&!detail)return;
-    entries.unshift({date,time,title,project,detail});
+    entries.unshift({date,time,title,project,detail,status:defaultStatusId()});
     save();render();
     form.reset();
     dateInput.value=localDate();
